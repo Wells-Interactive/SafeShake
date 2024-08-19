@@ -27,7 +27,7 @@ Optional Demo: Include a short video or GIF demonstrating the app's functionalit
 
 ## Key Features
 
-Shake Detection
+###  Shake Detection
 Highly sensitive shake detection for accurate emergency activation.
 SMS Sending
 Customizable SMS message with optional location sharing.
@@ -40,7 +40,7 @@ Personalize the SMS message and manage notification settings.
 Test Mode
 Simulate a distress situation without sending an actual SMS for testing purposes.
 
-## User Benefits
+### User Benefits
 Peace of Mind: Know that help is just a shake away in an emergency.
 Quick Response Time: Alerts your emergency contact immediately, potentially saving valuable time.
 Discreetness: Send an SOS message without drawing attention in dangerous situations.
@@ -72,6 +72,6 @@ Contact Us: Get in touch to learn more about investment opportunities or partner
   <a href="https://www.tiktok.com/@mrwellslife">TIKTOK</a><br>
   <a href="https://www.threads.net/@mrwellslife">THREADS</a><br>
   <a href="https://www.producthunt.com/@mrwellslife">PRODUCT HUNT</a>
-  <a href="https://www.instagram.com/sosalerts"> SafeSHake (Formerly SOSAlert)</a>a>
+  <a href="https://www.instagram.com/sosalerts"> SafeSHake (Formerly SOSAlert)</a>
 </div>
 
