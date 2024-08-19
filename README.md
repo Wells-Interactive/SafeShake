@@ -13,12 +13,14 @@ Challenges: Traditional methods like calling 911 or texting a friend can be diff
 Need: A discreet and rapid way to alert a trusted contact in an emergency.
 
 # Solution: SafeShake App
-Purpose: SafeShake provides a quick and discreet way to send an SMS alert to a designated emergency contact in case of distress.
-Core Functionality:
+##### Purpose: 
+SafeShake provides a quick and discreet way to send an SMS alert to a designated emergency contact in case of distress.
+
+##### Core Functionality:
 Shake detection to activate the alert.
-SMS sending to a pre-defined emergency contact.
+#### SMS sending to a pre-defined emergency contact.
 Emergency contact management to add, edit, or remove contacts.
-Slide 4: How it Works
+### How it Works
 Simple Visual:
 User shakes phone rapidly.
 SafeShake app detects the shake and activates.
