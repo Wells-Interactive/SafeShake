@@ -3,7 +3,7 @@
 
 # INTRO
 App Name: SafeShake
-Your Name/Team Name: (Your Name/Team Name Here)
+Wells Interactive
 Tagline: "Safety in the Shake of Your Hand"
 
 # The Problem
