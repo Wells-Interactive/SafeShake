@@ -63,3 +63,15 @@ Slide 10 (Optional): Team Information
 Briefly introduce your team members and their expertise.
 Remember to customize this presentation with your own creative flair and branding!
 
+
+
+
+<div>
+  <a href="https://www.instagram.com/mrwellslife"> INSTAGRAM </a><br>
+  <a href="https://x.com/mrwellslife">X (Formerly Twitter)</a><br>
+  <a href="https://web.facebook.com/MrWellslife">FACEBOOK</a><br>
+  <a href="https://www.tiktok.com/@mrwellslife">TIKTOK</a><br>
+  <a href="https://www.threads.net/@mrwellslife">THREADS</a><br>
+  <a href="https://www.producthunt.com/@mrwellslife">PRODUCT HUNT</a>
+</div>
+
