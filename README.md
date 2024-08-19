@@ -59,7 +59,7 @@ Revenue Opportunities: Freemium model with premium features like unlimited emerg
 ### Call to Action
 Join Us in Making a Difference: Help us keep people safe by supporting the development of SafeShake.
 Download the App (When Available): Stay tuned for the launch of SafeShake on the App Store and Google Play.
-Contact Us: Get in touch to learn more about investment opportunities or partnerships. [(Mr.Wells)](https://tap.bio/@mrwellslife)
+Contact Us: Get in touch to learn more about investment opportunities or partnerships. [(Mr. Wells)](https://tap.bio/@mrwellslife)
 
 
 
