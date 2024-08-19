@@ -63,4 +63,3 @@ Slide 10 (Optional): Team Information
 Briefly introduce your team members and their expertise.
 Remember to customize this presentation with your own creative flair and branding!
 
-Python
