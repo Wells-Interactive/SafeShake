@@ -28,17 +28,17 @@ Optional Demo: Include a short video or GIF demonstrating the app's functionalit
 ## Key Features
 
 ###  Shake Detection
-Highly sensitive shake detection for accurate emergency activation.
-SMS Sending
-Customizable SMS message with optional location sharing.
-Emergency Contact Management
-Easy addition, editing, and removal of emergency contacts.
-Location Sharing (Optional)
-Share user's location with the emergency contact for faster assistance. (Requires permission)
-Customization Options
-Personalize the SMS message and manage notification settings.
-Test Mode
-Simulate a distress situation without sending an actual SMS for testing purposes.
+Highly sensitive shake detection for accurate emergency activation.<br>
+SMS Sending<br>
+Customizable SMS message with optional location sharing.<br>
+Emergency Contact Management<br>
+Easy addition, editing, and removal of emergency contacts.<br>
+Location Sharing (Optional)<br>
+Share user's location with the emergency contact for faster assistance. (Requires permission)<br>
+Customization Options<br>
+Personalize the SMS message and manage notification settings.<br>
+Test Mode<br>
+Simulate a distress situation without sending an actual SMS for testing purposes.<br>
 
 ### User Benefits
 Peace of Mind: Know that help is just a shake away in an emergency.
