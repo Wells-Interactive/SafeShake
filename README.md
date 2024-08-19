@@ -26,8 +26,7 @@ SMS with user's location (if enabled) is sent to the emergency contact.
 Optional Demo: Include a short video or GIF demonstrating the app's functionality.
 
 ## Key Features
-
-###  Shake Detection
+Shake Detection<br>
 Highly sensitive shake detection for accurate emergency activation.<br>
 SMS Sending<br>
 Customizable SMS message with optional location sharing.<br>
