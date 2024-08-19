@@ -2,8 +2,8 @@
 
 
 # INTRO
-App Name: SafeShake
-Wells Interactive
+App Name: SafeShake <br>
+Wells Interactive <br>
 Tagline: "Safety in the Shake of Your Hand"
 
 # The Problem
