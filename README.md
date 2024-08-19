@@ -55,13 +55,11 @@ People Working in Isolated Environments: Construction workers, security guards, 
 Large Market Size: The global personal safety app market is expected to reach $18.2 billion by 2025. (Source: Grand View Research)
 Competitive Advantage: SafeShake's focus on shake detection and ease of use differentiates it from competitors.
 Revenue Opportunities: Freemium model with premium features like unlimited emergency contacts or cloud storage for location data.
-Slide 9: Call to Action
+
+### Call to Action
 Join Us in Making a Difference: Help us keep people safe by supporting the development of SafeShake.
 Download the App (When Available): Stay tuned for the launch of SafeShake on the App Store and Google Play.
 Contact Us: Get in touch to learn more about investment opportunities or partnerships. (Include website or email address)
-Slide 10 (Optional): Team Information
-Briefly introduce your team members and their expertise.
-Remember to customize this presentation with your own creative flair and branding!
 
 
 
