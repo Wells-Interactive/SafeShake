@@ -1,5 +1,6 @@
 # SafeShake (Formerly SOSAlerts)
 
+### Seeking funding
 
 # INTRO
 App Name: SafeShake <br>
@@ -71,5 +72,6 @@ Contact Us: Get in touch to learn more about investment opportunities or partner
   <a href="https://www.tiktok.com/@mrwellslife">TIKTOK</a><br>
   <a href="https://www.threads.net/@mrwellslife">THREADS</a><br>
   <a href="https://www.producthunt.com/@mrwellslife">PRODUCT HUNT</a>
+  <a href="https://www.instagram.com/sosalerts"> SafeSHake (Formerly SOSAlert)</a>a>
 </div>
 
