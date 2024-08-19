@@ -73,6 +73,6 @@ Contact Us: Get in touch to learn more about investment opportunities or partner
   <a href="https://www.tiktok.com/@mrwellslife">TIKTOK</a><br>
   <a href="https://www.threads.net/@mrwellslife">THREADS</a><br>
   <a href="https://www.producthunt.com/@mrwellslife">PRODUCT HUNT</a><br>
-  <a href="https://www.instagram.com/sosalerts"> SafeSHake (Formerly SOSAlert)</a>
+  <a href="https://www.instagram.com/sosalerts"> SafeShake (Formerly SOSAlert)</a>
 </div>
 
