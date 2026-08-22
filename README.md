@@ -55,6 +55,13 @@ When activated, SafeShake can send a predefined emergency message to selected em
 7. **The user's live location will be included if location sharing is enabled and permission has been granted.**
 
 ---
+## 🧭 Navigation
+
+- **Home** — protection status and emergency dashboard
+- **Contacts** — manage up to five trusted contacts
+- **Test** — safely test the alert experience
+- **Settings** — alert, shake, location, and account preferences
+
 
 # ✨ Key Features
 
