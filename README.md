@@ -2,7 +2,7 @@
 
 > **Safety in the Shake of Your Hand.**
 
-**SafeShake** is a personal safety and emergency alert application developed by  Brainyte For **Wells Interactive**.
+**SafeShake** is a personal safety and emergency alert application developed by Brainyte for **Wells Interactive**.
 
 Formerly known as **SOSAlerts**, SafeShake is designed to provide a fast, discreet, and accessible way for users to alert trusted contacts when they feel unsafe or require urgent assistance.
 
@@ -44,24 +44,41 @@ When activated, SafeShake can send a predefined emergency message to selected em
 
 ---
 
-# 🔄 How It Works
+# 🏗️ Architecture
 
-1. **The user sets up trusted emergency contacts.**
-2. **The user customizes their emergency message.**
-3. **The SafeShake app monitors for the configured shake gesture.**
-4. **The user rapidly shakes their phone to activate the emergency process.**
-5. **SafeShake detects the shake.**
-6. **An emergency alert is prepared and sent to selected contacts.**
-7. **The user's live location will be included if location sharing is enabled and permission has been granted.**
+SafeShake follows a feature-oriented Flutter architecture:
+
+```
+lib/
+├── app/
+│   ├── app.dart
+│   ├── routes/
+│   └── theme/
+├── core/
+│   ├── constants/
+│   ├── models/
+│   ├── permissions/
+│   ├── services/
+│   └── utils/
+├── features/
+│   ├── authentication/
+│   ├── emergency_alert/
+│   ├── emergency_contacts/
+│   ├── home/
+│   ├── location/
+│   ├── onboarding/
+│   ├── settings/
+│   ├── shake_detection/
+│   ├── splash/
+│   └── test_mode/
+└── shared/
+    └── providers/
+    └── widgets/
+```
+
+State management uses **Provider**. Business logic is separated into services and providers.
 
 ---
-## 🧭 Navigation
-
-- **Home** — protection status and emergency dashboard
-- **Contacts** — manage up to five trusted contacts
-- **Test** — safely test the alert experience
-- **Settings** — alert, shake, location, and account preferences
-
 
 # ✨ Key Features
 
@@ -81,12 +98,11 @@ Users can:
 * Edit existing contacts
 * Remove contacts
 * Select contacts for emergency alerts
+* Up to 5 contacts maximum
 
 ## 📍 Optional Location Sharing
 
 When enabled and permitted, SafeShake can include the user's current location with an emergency alert.
-
-This can help trusted contacts locate and assist the user more quickly.
 
 ## ⚙️ Customization
 
@@ -102,126 +118,119 @@ Users can personalize:
 
 A dedicated test mode allows users to test SafeShake without sending a real emergency SMS.
 
-This helps users understand how the application works before an actual emergency occurs.
+---
+
+# 🔐 Authentication
+
+SafeShake supports:
+
+* Email and password registration/sign-in
+* Google Sign-In
+* Phone number authentication
+* Password reset
 
 ---
 
-# ❤️ Why SafeShake?
+# 🔥 Firebase Setup
 
-## Peace of Mind
+SafeShake uses Firebase for authentication, Firestore, Storage, Messaging, and Crashlytics.
 
-Know that help may be only a shake away.
+### Prerequisites
 
-## Fast Emergency Activation
+1. Create a Firebase project at [console.firebase.google.com](https://console.firebase.google.com)
+2. Add Android and iOS apps to the project
+3. Download `google-services.json` (Android) and `GoogleService-Info.plist` (iOS)
+4. Run `flutterfire configure` to generate `lib/firebase_options.dart`
 
-A physical gesture can be faster than navigating through multiple screens or typing a message.
+### Firestore Security Rules
 
-## Discreet Operation
+Deploy the following rules to Firestore:
 
-SafeShake is designed to help users activate an emergency process without requiring lengthy interaction with their phone.
-
-## Personalization
-
-Users can configure SafeShake according to their individual safety needs.
-
----
-
-# 🎯 Target Users
-
-SafeShake is designed for anyone who may benefit from an additional personal safety tool, including:
-
-### 👤 Individuals Concerned About Personal Safety
-
-People who travel frequently, work alone, or regularly move through unfamiliar environments.
-
-### 👴 Elderly Individuals
-
-People who may find it difficult to quickly place a phone call during an emergency.
-
-### 🎓 Students and Young Professionals
-
-Individuals living independently or navigating unfamiliar environments.
-
-### 🏗️ People Working in Isolated Environments
-
-Including:
-
-* Construction workers
-* Security personnel
-* Delivery personnel
-* Field workers
-* Remote workers
+```
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+      match /contacts/{contactId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+    }
+  }
+}
+```
 
 ---
 
-# 📈 Market Opportunity
+# 🚀 Local Setup
 
-Personal safety technology continues to grow as individuals increasingly look for accessible tools that can help them communicate during emergencies.
+### Prerequisites
 
-SafeShake aims to differentiate itself through:
+* Flutter SDK >= 3.4.0
+* Android Studio / Xcode
+* Firebase project configured
 
-* Simple shake-based activation
-* Fast emergency alerts
-* Optional location sharing
-* Easy emergency contact management
-* A lightweight and user-friendly experience
+### Steps
 
-Future opportunities may include:
+```bash
+# Clone the repository
+git clone <repository-url>
+cd SafeShake
 
-* Premium safety features
-* Additional emergency contacts
-* Cloud-based safety services
-* Emergency event history
-* Advanced location-sharing features
-* Family safety tools
-* Wearable device integration
+# Install dependencies
+flutter pub get
 
----
+# Generate Firebase options (requires FlutterFire CLI)
+flutterfire configure
 
-# 🚀 Project Status
-
-**SafeShake is currently under development.**
-
-The initial version is focused on building a reliable foundation around:
-
-* Shake detection
-* Emergency contact management
-* SMS alerts
-* Optional location sharing
-* User customization
-* Test mode
+# Run the app
+flutter run
+```
 
 ---
 
-# 🤝 Funding & Partnerships
+# 🧪 Testing
 
-We are actively interested in connecting with:
+```bash
+flutter test
+```
 
-* Investors
-* Technology partners
-* Personal safety organizations
-* Telecommunications partners
-* Developers
-* Security professionals
-* Organizations interested in personal safety technology
+Tests cover:
+* Contact model serialization
+* Settings model roundtrip
+* Input validation
+* Alert service behavior
+* Contacts empty state widget
 
-If you are interested in supporting or collaborating on SafeShake, we would love to hear from you.
+---
+
+# 📱 Supported Platforms
+
+* Android
+* iOS
+
+---
+
+# 🔒 Security Notes
+
+* Never commit signing keys, keystores, or API secrets
+* Firebase security rules enforce user-owned data
+* Profile pictures are optional and user-owned
+* Location sharing is permission-aware
+
+---
+
+# ⚠️ Platform Limitations
+
+* **Android and iOS do not provide identical support for automated/background SMS.** SafeShake respects current platform capabilities and does not fake delivery success.
+* Push notifications are prepared for future use but v1 does not implement emergency push delivery.
+* Background shake monitoring is subject to modern Android background restrictions.
 
 ---
 
 # 📲 Availability
 
 SafeShake is currently in development.
-
-Planned availability:
-
-* 🤖 Android
-* 🍎 iOS — Future consideration
-
-Stay tuned for updates regarding availability on:
-
-* Google Play
-* Apple App Store
 
 ---
 
@@ -243,16 +252,6 @@ For enquiries, collaboration opportunities, or partnerships:
 
 [Contact Mr. Wells](https://linktr.ee/mrwellslife)
 
-### Connect
-
-* [Instagram](https://www.instagram.com/mrwellslife)
-* [X (Twitter)](https://x.com/mrwellslife)
-* [Facebook](https://web.facebook.com/MrWellslife)
-* [TikTok](https://www.tiktok.com/@mrwellslife)
-* [Threads](https://www.threads.net/@mrwellslife)
-* [Product Hunt](https://www.producthunt.com/@mrwellslife)
-* [SafeShake on Instagram](https://www.instagram.com/sosalerts)
-
 ---
 
 <p align="center">
@@ -264,4 +263,3 @@ For enquiries, collaboration opportunities, or partnerships:
 Built by Brainyte for **Wells Interactive**
 
 </p>
-

@@ -1,17 +1,64 @@
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+
 class AuthService {
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final GoogleSignIn _googleSignIn = GoogleSignIn();
+
+  User? get currentUser => _auth.currentUser;
+  Stream<User?> get authStateChanges => _auth.authStateChanges();
+
   Future<void> signInWithEmail(String email, String password) async {
-    // TODO: Firebase email/password authentication.
+    await _auth.signInWithEmailAndPassword(email: email, password: password);
   }
 
-  Future<void> registerWithEmail(String email, String password) async {
-    // TODO: Firebase registration.
+  Future<void> registerWithEmail(String email, String password, String fullName) async {
+    final credential = await _auth.createUserWithEmailAndPassword(
+      email: email,
+      password: password,
+    );
+    await credential.user?.updateDisplayName(fullName);
   }
 
   Future<void> signInWithGoogle() async {
-    // TODO: Google Sign-In + Firebase Authentication.
+    final googleUser = await _googleSignIn.signIn();
+    if (googleUser == null) throw Exception('Google sign-in cancelled');
+    final googleAuth = await googleUser.authentication;
+    final credential = GoogleAuthProvider.credential(
+      accessToken: googleAuth.accessToken,
+      idToken: googleAuth.idToken,
+    );
+    await _auth.signInWithCredential(credential);
   }
 
   Future<void> sendPhoneVerification(String phoneNumber) async {
-    // TODO: Firebase phone authentication.
+    await _auth.verifyPhoneNumber(
+      phoneNumber: phoneNumber,
+      verificationCompleted: (PhoneAuthCredential credential) async {
+        await _auth.signInWithCredential(credential);
+      },
+      verificationFailed: (FirebaseAuthException e) {
+        throw Exception(e.message ?? 'Phone verification failed');
+      },
+      codeSent: (String verificationId, int? resendToken) {},
+      codeAutoRetrievalTimeout: (String verificationId) {},
+    );
+  }
+
+  Future<void> signInWithPhoneCredential(String verificationId, String smsCode) async {
+    final credential = PhoneAuthProvider.credential(
+      verificationId: verificationId,
+      smsCode: smsCode,
+    );
+    await _auth.signInWithCredential(credential);
+  }
+
+  Future<void> sendPasswordReset(String email) async {
+    await _auth.sendPasswordResetEmail(email: email);
+  }
+
+  Future<void> signOut() async {
+    await _googleSignIn.signOut();
+    await _auth.signOut();
   }
 }

@@ -1,4 +1,36 @@
 # Core Files
 /core
 
+# Firebase
+firebase_options.dart
+google-services.json
+GoogleService-Info.plist
 
+# Signing keys
+*.jks
+*.keystore
+
+# IDE
+.idea/
+*.iml
+
+# Build
+build/
+ios/Pods/
+ios/.symlinks/
+ios/Flutter/Flutter.framework/
+ios/Flutter/Flutter.podspec
+ios/Flutter/Generated.xcconfig
+ios/Flutter/flutter_export_environment.sh
+ios/Flutter/ephemeral/
+ios/Runner.xcworkspace/
+ios/xcuserdata/
+
+# Misc
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+.pub/
+pubspec.lock
