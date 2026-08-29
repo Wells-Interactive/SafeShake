@@ -29,15 +29,15 @@ class SettingsProvider extends ChangeNotifier {
   SettingsProvider(this._userId);
 
   Future<void> loadSettings() async {
-    if (_userId == null || _userId!.isEmpty) return;
+    if (_userId == null || _userId.isEmpty) return;
     _setLoading(true);
     _clearError();
     try {
-      final doc = await _firebaseService.userSettingsDoc(_userId!).get();
+      final doc = await _firebaseService.userSettingsDoc(_userId).get();
       if (doc.exists) {
-        _settings = AppSettings.fromMap(_userId!, doc.data()!);
+        _settings = AppSettings.fromMap(_userId, doc.data()!);
       } else {
-        _settings = AppSettings(userId: _userId!);
+        _settings = AppSettings(userId: _userId);
         await _saveSettings(_settings);
       }
       notifyListeners();
@@ -51,7 +51,7 @@ class SettingsProvider extends ChangeNotifier {
   }
 
   Future<bool> updateSettings(AppSettings newSettings) async {
-    if (_userId == null || _userId!.isEmpty) return false;
+    if (_userId == null || _userId.isEmpty) return false;
     _setLoading(true);
     _clearError();
     try {
@@ -107,9 +107,9 @@ class SettingsProvider extends ChangeNotifier {
   }
 
   Future<void> _saveSettings(AppSettings settings) async {
-    if (_userId == null || _userId!.isEmpty) return;
+    if (_userId == null || _userId.isEmpty) return;
     await _firebaseService
-        .userSettingsDoc(_userId!)
+        .userSettingsDoc(_userId)
         .set(settings.toMap(), SetOptions(merge: true));
   }
 
