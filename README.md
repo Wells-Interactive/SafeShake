@@ -6,7 +6,7 @@
 
 Formerly known as **SOSAlerts**, SafeShake is designed to provide a fast, discreet, and accessible way for users to alert trusted contacts when they feel unsafe or require urgent assistance.
 
-## 🚨 Seeking Partnerships
+## 🚨 Seeking Collaborations
 
 SafeShake is currently seeking strategic partnerships, and collaboration opportunities to support its development and launch.
 
