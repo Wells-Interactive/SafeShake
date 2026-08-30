@@ -42,40 +42,6 @@ The app is designed around a simple concept:
 
 When activated, SafeShake can send a predefined emergency message to selected emergency contacts and optionally include the user's location.
 
----
-
-# 🏗️ Architecture
-
-SafeShake follows a feature-oriented Flutter architecture:
-
-```
-lib/
-├── app/
-│   ├── app.dart
-│   ├── routes/
-│   └── theme/
-├── core/
-│   ├── constants/
-│   ├── models/
-│   ├── permissions/
-│   ├── services/
-│   └── utils/
-├── features/
-│   ├── authentication/
-│   ├── emergency_alert/
-│   ├── emergency_contacts/
-│   ├── home/
-│   ├── location/
-│   ├── onboarding/
-│   ├── settings/
-│   ├── shake_detection/
-│   ├── splash/
-│   └── test_mode/
-└── shared/
-    └── providers/
-    └── widgets/
-```
-
 State management uses **Provider**. Business logic is separated into services and providers.
 
 ---
