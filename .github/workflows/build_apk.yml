@@ -1,4 +1,4 @@
-name: Build Brainyte POS Android APK
+name: Build Brainyte Safeshake Android APK
 
 on:
   push:
