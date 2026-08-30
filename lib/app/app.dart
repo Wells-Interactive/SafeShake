@@ -19,10 +19,11 @@ class SafeShakeApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final alertService = AlertService();
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => AuthProvider()),
-        Provider(create: (_) => AlertService()),
+        Provider.value(value: alertService),
         ChangeNotifierProxyProvider<AuthProvider, SettingsProvider>(
           create: (_) => SettingsProvider(null),
           update: (_, authProvider, __) {
@@ -36,9 +37,9 @@ class SafeShakeApp extends StatelessWidget {
           },
         ),
         ChangeNotifierProxyProvider<AuthProvider, ShakeProvider>(
-          create: (_) => ShakeProvider(context.read<AlertService>()),
+          create: (_) => ShakeProvider(alertService),
           update: (_, authProvider, __) {
-            return ShakeProvider(context.read<AlertService>());
+            return ShakeProvider(alertService);
           },
         ),
       ],
