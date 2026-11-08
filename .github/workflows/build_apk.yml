@@ -147,7 +147,7 @@ jobs:
           path: build/app/outputs/flutter-apk/app-release.apk
           if-no-files-found: error
           compression-level: 0
-          retention-days: 30
+          retention-days: 1
 
       - name: Publish build summary
         if: success()
@@ -160,7 +160,7 @@ jobs:
           echo "- **Version:** $(grep '^version:' pubspec.yaml | head -n 1 | awk '{print $2}')" >> "$GITHUB_STEP_SUMMARY"
           echo "- **File:** app-release.apk" >> "$GITHUB_STEP_SUMMARY"
           echo "- **Signing:** Verified" >> "$GITHUB_STEP_SUMMARY"
-          echo "- **Retention:** 30 days" >> "$GITHUB_STEP_SUMMARY"
+          echo "- **Retention:** 1 day" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
           echo "Download the APK from the workflow Artifacts section." >> "$GITHUB_STEP_SUMMARY"
 
