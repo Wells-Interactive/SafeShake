@@ -5,7 +5,6 @@ class PermissionService {
     final permissions = <Permission>[
       Permission.locationWhenInUse,
       Permission.notification,
-      Permission.sms,
     ];
 
     final statuses = <Permission, PermissionStatus>{};
@@ -23,11 +22,6 @@ class PermissionService {
 
   Future<bool> requestNotificationPermission() async {
     final status = await Permission.notification.request();
-    return status.isGranted;
-  }
-
-  Future<bool> requestSmsPermission() async {
-    final status = await Permission.sms.request();
     return status.isGranted;
   }
 

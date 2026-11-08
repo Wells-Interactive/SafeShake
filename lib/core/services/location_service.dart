@@ -3,29 +3,22 @@ import 'package:geolocator/geolocator.dart';
 
 class LocationService {
   Future<String?> getEmergencyLocationLink() async {
+    final hasPermission = await _checkPermission();
+    if (!hasPermission) return null;
+
+    final serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) return null;
+
     try {
-      final hasPermission = await _checkPermission();
-      if (!hasPermission) return null;
-
-      final serviceEnabled = await Geolocator.isLocationServiceEnabled();
-      if (!serviceEnabled) return null;
-
-      Position? position;
-      try {
-        position = await Geolocator.getCurrentPosition(
-          desiredAccuracy: LocationAccuracy.high,
-          timeLimit: const Duration(seconds: 10),
-        );
-      } on TimeoutException {
-        position = await Geolocator.getLastKnownPosition();
-      }
-
-      if (position == null) return null;
-
-      final lat = position.latitude;
-      final lng = position.longitude;
-      return 'https://maps.google.com/?q=$lat,$lng';
-    } catch (e) {
+      final position = await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.high,
+          timeLimit: Duration(seconds: 10),
+        ),
+      );
+      final coordinates = '${position.latitude},${position.longitude}';
+      return 'https://maps.google.com/?q=$coordinates';
+    } on TimeoutException {
       return null;
     }
   }

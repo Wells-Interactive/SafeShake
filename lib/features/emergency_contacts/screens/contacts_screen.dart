@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../../shared/providers/contacts_provider.dart';
 import '../../../../core/models/emergency_contact.dart';
+import '../../../../core/utils/validators.dart';
 import '../../../../app/theme/app_colors.dart';
 
 class ContactsScreen extends StatelessWidget {
@@ -29,11 +30,15 @@ class ContactsScreen extends StatelessWidget {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.people_outline, size: 64, color: Theme.of(context).colorScheme.outline),
+                        Icon(Icons.people_outline,
+                            size: 64,
+                            color: Theme.of(context).colorScheme.outline),
                         const SizedBox(height: 16),
-                        Text('No contacts yet', style: Theme.of(context).textTheme.titleMedium),
+                        Text('No contacts yet',
+                            style: Theme.of(context).textTheme.titleMedium),
                         const SizedBox(height: 8),
-                        const Text('Add up to 5 trusted emergency contacts who will be notified in an emergency.'),
+                        const Text(
+                            'Add up to 5 trusted emergency contacts who will be notified in an emergency.'),
                       ],
                     ),
                   ),
@@ -45,37 +50,57 @@ class ContactsScreen extends StatelessWidget {
                     final contact = contactsProvider.contacts[index];
                     return Card(
                       child: ListTile(
-                        leading: CircleAvatar(child: Text(contact.name.isNotEmpty ? contact.name[0].toUpperCase() : '?')),
+                        leading: CircleAvatar(
+                            child: Text(contact.name.isNotEmpty
+                                ? contact.name[0].toUpperCase()
+                                : '?')),
                         title: Text(contact.name),
-                        subtitle: Text(contact.phoneNumber),
+                        subtitle: Text(contact.email.isEmpty
+                            ? contact.phoneNumber
+                            : '${contact.phoneNumber}\n${contact.email}'),
                         trailing: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             IconButton(
-                              icon: Icon(contact.enabled ? Icons.notifications_active : Icons.notifications_off),
-                              onPressed: () => contactsProvider.updateContact(contact.copyWith(enabled: !contact.enabled)),
-                              tooltip: contact.enabled ? 'Disable alerts' : 'Enable alerts',
+                              icon: Icon(contact.enabled
+                                  ? Icons.notifications_active
+                                  : Icons.notifications_off),
+                              onPressed: () => contactsProvider.updateContact(
+                                  contact.copyWith(enabled: !contact.enabled)),
+                              tooltip: contact.enabled
+                                  ? 'Disable alerts'
+                                  : 'Enable alerts',
                             ),
                             IconButton(
                               icon: const Icon(Icons.edit),
-                              onPressed: () => _showEditContactDialog(context, contactsProvider, contact),
+                              onPressed: () => _showEditContactDialog(
+                                  context, contactsProvider, contact),
                             ),
                             IconButton(
-                              icon: const Icon(Icons.delete, color: AppColors.safety),
+                              icon: const Icon(Icons.delete,
+                                  color: AppColors.safety),
                               onPressed: () async {
                                 final confirm = await showDialog<bool>(
                                   context: context,
                                   builder: (context) => AlertDialog(
                                     title: const Text('Delete Contact'),
-                                    content: Text('Remove ${contact.name} from emergency contacts?'),
+                                    content: Text(
+                                        'Remove ${contact.name} from emergency contacts?'),
                                     actions: [
-                                      TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
-                                      FilledButton(onPressed: () => Navigator.pop(context, true), child: const Text('Delete')),
+                                      TextButton(
+                                          onPressed: () =>
+                                              Navigator.pop(context, false),
+                                          child: const Text('Cancel')),
+                                      FilledButton(
+                                          onPressed: () =>
+                                              Navigator.pop(context, true),
+                                          child: const Text('Delete')),
                                     ],
                                   ),
                                 );
                                 if (confirm == true && context.mounted) {
-                                  await contactsProvider.deleteContact(contact.id);
+                                  await contactsProvider
+                                      .deleteContact(contact.id);
                                 }
                               },
                             ),
@@ -88,9 +113,11 @@ class ContactsScreen extends StatelessWidget {
     );
   }
 
-  Future<void> _showAddContactDialog(BuildContext context, ContactsProvider provider) async {
+  Future<void> _showAddContactDialog(
+      BuildContext context, ContactsProvider provider) async {
     final nameController = TextEditingController();
     final phoneController = TextEditingController();
+    final emailController = TextEditingController();
     bool enabled = true;
 
     await showDialog(
@@ -111,6 +138,13 @@ class ContactsScreen extends StatelessWidget {
                 decoration: const InputDecoration(labelText: 'Phone Number'),
                 keyboardType: TextInputType.phone,
               ),
+              TextField(
+                controller: emailController,
+                decoration: const InputDecoration(
+                  labelText: 'Email (for SMS fallback)',
+                ),
+                keyboardType: TextInputType.emailAddress,
+              ),
               SwitchListTile(
                 title: const Text('Enable for alerts'),
                 value: enabled,
@@ -119,14 +153,28 @@ class ContactsScreen extends StatelessWidget {
             ],
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+            TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Cancel')),
             FilledButton(
               onPressed: () async {
-                if (nameController.text.trim().isEmpty || phoneController.text.trim().isEmpty) return;
+                final email = emailController.text.trim();
+                if (nameController.text.trim().isEmpty ||
+                    phoneController.text.trim().isEmpty) {
+                  return;
+                }
+                if (email.isNotEmpty && !Validators.isValidEmail(email)) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                        content: Text('Enter a valid email address.')),
+                  );
+                  return;
+                }
                 final contact = EmergencyContact(
                   id: DateTime.now().millisecondsSinceEpoch.toString(),
                   name: nameController.text.trim(),
                   phoneNumber: phoneController.text.trim(),
+                  email: email,
                   enabled: enabled,
                 );
                 final success = await provider.addContact(contact);
@@ -140,9 +188,11 @@ class ContactsScreen extends StatelessWidget {
     );
   }
 
-  Future<void> _showEditContactDialog(BuildContext context, ContactsProvider provider, EmergencyContact contact) async {
+  Future<void> _showEditContactDialog(BuildContext context,
+      ContactsProvider provider, EmergencyContact contact) async {
     final nameController = TextEditingController(text: contact.name);
     final phoneController = TextEditingController(text: contact.phoneNumber);
+    final emailController = TextEditingController(text: contact.email);
     bool enabled = contact.enabled;
 
     await showDialog(
@@ -163,6 +213,13 @@ class ContactsScreen extends StatelessWidget {
                 decoration: const InputDecoration(labelText: 'Phone Number'),
                 keyboardType: TextInputType.phone,
               ),
+              TextField(
+                controller: emailController,
+                decoration: const InputDecoration(
+                  labelText: 'Email (for SMS fallback)',
+                ),
+                keyboardType: TextInputType.emailAddress,
+              ),
               SwitchListTile(
                 title: const Text('Enable for alerts'),
                 value: enabled,
@@ -171,13 +228,27 @@ class ContactsScreen extends StatelessWidget {
             ],
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+            TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Cancel')),
             FilledButton(
               onPressed: () async {
-                if (nameController.text.trim().isEmpty || phoneController.text.trim().isEmpty) return;
+                final email = emailController.text.trim();
+                if (nameController.text.trim().isEmpty ||
+                    phoneController.text.trim().isEmpty) {
+                  return;
+                }
+                if (email.isNotEmpty && !Validators.isValidEmail(email)) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                        content: Text('Enter a valid email address.')),
+                  );
+                  return;
+                }
                 final updated = contact.copyWith(
                   name: nameController.text.trim(),
                   phoneNumber: phoneController.text.trim(),
+                  email: email,
                   enabled: enabled,
                 );
                 final success = await provider.updateContact(updated);

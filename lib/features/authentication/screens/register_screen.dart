@@ -87,9 +87,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 const SizedBox(height: 16),
                 TextFormField(
                   controller: _confirmPasswordController,
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     labelText: 'Confirm Password *',
-                    prefixIcon: const Icon(Icons.lock_outlined),
+                    prefixIcon: Icon(Icons.lock_outlined),
                   ),
                   obscureText: _obscurePassword,
                   validator: (value) {

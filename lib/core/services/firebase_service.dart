@@ -6,6 +6,10 @@ class FirebaseService {
 
   Future<void> initialize() async {
     if (_initialized) return;
+    if (Firebase.apps.isNotEmpty) {
+      _initialized = true;
+      return;
+    }
     await Firebase.initializeApp();
     _initialized = true;
   }

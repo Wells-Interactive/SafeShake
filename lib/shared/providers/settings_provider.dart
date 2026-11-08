@@ -3,16 +3,14 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import '../../core/models/app_settings.dart';
 import '../../core/services/firebase_service.dart';
-import '../../core/services/shake_service.dart';
 
 class SettingsProvider extends ChangeNotifier {
   final FirebaseService _firebaseService = FirebaseService();
-  final String? _userId;
+  String? _userId;
 
   AppSettings _settings = const AppSettings(userId: '');
   bool _isLoading = false;
   String? _errorMessage;
-  ShakeService? _shakeService;
 
   AppSettings get settings => _settings;
   bool get isLoading => _isLoading;
@@ -28,17 +26,34 @@ class SettingsProvider extends ChangeNotifier {
 
   SettingsProvider(this._userId);
 
+  void setUserId(String? userId) {
+    if (_userId == userId) return;
+    _userId = userId;
+    _settings = AppSettings(userId: userId ?? '');
+    _errorMessage = null;
+    Future<void>.microtask(() async {
+      if (_userId != userId) return;
+      if (userId == null || userId.isEmpty) {
+        notifyListeners();
+        return;
+      }
+      await loadSettings();
+    });
+  }
+
   Future<void> loadSettings() async {
-    if (_userId == null || _userId.isEmpty) return;
+    final userId = _userId;
+    if (userId == null || userId.isEmpty) return;
     _setLoading(true);
     _clearError();
     try {
-      final doc = await _firebaseService.userSettingsDoc(_userId).get();
+      final doc = await _firebaseService.userSettingsDoc(userId).get();
+      if (_userId != userId) return;
       if (doc.exists) {
-        _settings = AppSettings.fromMap(_userId, doc.data()!);
+        _settings = AppSettings.fromMap(userId, doc.data()!);
       } else {
-        _settings = AppSettings(userId: _userId);
-        await _saveSettings(_settings);
+        _settings = AppSettings(userId: userId);
+        await _saveSettings(_settings, userId);
       }
       notifyListeners();
     } on FirebaseException catch (e) {
@@ -51,11 +66,13 @@ class SettingsProvider extends ChangeNotifier {
   }
 
   Future<bool> updateSettings(AppSettings newSettings) async {
-    if (_userId == null || _userId.isEmpty) return false;
+    final userId = _userId;
+    if (userId == null || userId.isEmpty) return false;
     _setLoading(true);
     _clearError();
     try {
-      await _saveSettings(newSettings);
+      await _saveSettings(newSettings, userId);
+      if (_userId != userId) return false;
       _settings = newSettings;
       notifyListeners();
       return true;
@@ -86,9 +103,9 @@ class SettingsProvider extends ChangeNotifier {
     await updateSettings(newSettings);
   }
 
-  Future<void> setLocationSharing(bool enabled) async {
+  Future<bool> setLocationSharing(bool enabled) async {
     final newSettings = _settings.copyWith(locationSharingEnabled: enabled);
-    await updateSettings(newSettings);
+    return updateSettings(newSettings);
   }
 
   Future<void> setEmergencyMessage(String message) async {
@@ -96,9 +113,9 @@ class SettingsProvider extends ChangeNotifier {
     await updateSettings(newSettings);
   }
 
-  Future<void> setProtectionActive(bool active) async {
+  Future<bool> setProtectionActive(bool active) async {
     final newSettings = _settings.copyWith(protectionActive: active);
-    await updateSettings(newSettings);
+    return updateSettings(newSettings);
   }
 
   Future<void> setOnboardingComplete(bool complete) async {
@@ -106,22 +123,10 @@ class SettingsProvider extends ChangeNotifier {
     await updateSettings(newSettings);
   }
 
-  Future<void> _saveSettings(AppSettings settings) async {
-    if (_userId == null || _userId.isEmpty) return;
+  Future<void> _saveSettings(AppSettings settings, String userId) async {
     await _firebaseService
-        .userSettingsDoc(_userId)
+        .userSettingsDoc(userId)
         .set(settings.toMap(), SetOptions(merge: true));
-  }
-
-  void setShakeService(ShakeService service) {
-    _shakeService?.dispose();
-    _shakeService = service;
-  }
-
-  @override
-  void dispose() {
-    _shakeService?.dispose();
-    super.dispose();
   }
 
   void _setLoading(bool value) {

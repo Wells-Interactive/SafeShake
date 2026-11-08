@@ -12,7 +12,8 @@ class AuthService {
     await _auth.signInWithEmailAndPassword(email: email, password: password);
   }
 
-  Future<void> registerWithEmail(String email, String password, String fullName) async {
+  Future<void> registerWithEmail(
+      String email, String password, String fullName) async {
     final credential = await _auth.createUserWithEmailAndPassword(
       email: email,
       password: password,
@@ -20,15 +21,15 @@ class AuthService {
     await credential.user?.updateDisplayName(fullName);
   }
 
-  Future<void> signInWithGoogle() async {
+  Future<UserCredential?> signInWithGoogle() async {
     final googleUser = await _googleSignIn.signIn();
-    if (googleUser == null) throw Exception('Google sign-in cancelled');
+    if (googleUser == null) return null;
     final googleAuth = await googleUser.authentication;
     final credential = GoogleAuthProvider.credential(
       accessToken: googleAuth.accessToken,
       idToken: googleAuth.idToken,
     );
-    await _auth.signInWithCredential(credential);
+    return _auth.signInWithCredential(credential);
   }
 
   Future<void> sendPhoneVerification(String phoneNumber) async {
@@ -45,7 +46,8 @@ class AuthService {
     );
   }
 
-  Future<void> signInWithPhoneCredential(String verificationId, String smsCode) async {
+  Future<void> signInWithPhoneCredential(
+      String verificationId, String smsCode) async {
     final credential = PhoneAuthProvider.credential(
       verificationId: verificationId,
       smsCode: smsCode,
