@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-
   workflow_dispatch:
 
 permissions:
@@ -12,13 +11,12 @@ permissions:
 
 concurrency:
   group: safeshake-android-apk-${{ github.ref }}
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
-  build-apk:
-    name: Build and Upload Signed Android APK
+  build:
+    name: Build Signed SafeShake APK
     runs-on: ubuntu-latest
-    timeout-minutes: 45
 
     steps:
       - name: Checkout repository
@@ -37,37 +35,41 @@ jobs:
           channel: stable
           cache: true
 
-      - name: Configure Android SDK
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          accept-android-sdk-licenses: true
+          packages: 'platform-tools, platforms;android-36'
+
+      - name: Check Android SDK
         run: |
           echo "ANDROID_HOME=$ANDROID_HOME"
-          echo "ANDROID_SDK_ROOT=$ANDROID_HOME"
+          echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT"
+          sdkmanager --list_installed
+          test -d "$ANDROID_HOME/platforms/android-36"
 
-          if [ ! -x "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" ]; then
-            echo "ERROR: Android SDK command-line tools not found."
-            exit 1
-          fi
-
-          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses
-
-          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" \
-            "platforms;android-37" \
-            "platform-tools"
-
-      - name: Check Flutter and Java versions
+      - name: Check Flutter
         run: |
           flutter --version
-          java -version
           flutter doctor -v
 
-      - name: Get Flutter dependencies
+      - name: Install Flutter dependencies
         run: flutter pub get
 
-      - name: Decode Android keystore
+      - name: Configure Android release signing
         env:
           KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: |
-          if [ -z "$KEYSTORE_BASE64" ]; then
-            echo "ERROR: KEYSTORE_BASE64 secret is missing."
+          set -e
+
+          if [ -z "$KEYSTORE_BASE64" ] || \
+             [ -z "$KEYSTORE_PASSWORD" ] || \
+             [ -z "$KEY_ALIAS" ] || \
+             [ -z "$KEY_PASSWORD" ]; then
+            echo "ERROR: One or more Android signing secrets are missing."
             exit 1
           fi
 
@@ -76,26 +78,6 @@ jobs:
           echo "$KEYSTORE_BASE64" | base64 --decode \
             > android/app/safeshake-release.jks
 
-          if [ ! -s android/app/safeshake-release.jks ]; then
-            echo "ERROR: Keystore file is empty or invalid."
-            exit 1
-          fi
-
-          echo "Android keystore decoded successfully."
-
-      - name: Create key.properties
-        env:
-          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
-          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
-          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
-        run: |
-          if [ -z "$KEYSTORE_PASSWORD" ] || \
-             [ -z "$KEY_ALIAS" ] || \
-             [ -z "$KEY_PASSWORD" ]; then
-            echo "ERROR: One or more Android signing secrets are missing."
-            exit 1
-          fi
-
           cat > android/key.properties <<EOF
           storePassword=$KEYSTORE_PASSWORD
           keyPassword=$KEY_PASSWORD
@@ -103,68 +85,63 @@ jobs:
           storeFile=app/safeshake-release.jks
           EOF
 
-          echo "Android signing properties created."
+          echo "Release signing files configured."
 
-      - name: Verify decoded keystore
+      - name: Verify release keystore
         env:
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
-          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
         run: |
           keytool -list \
             -keystore android/app/safeshake-release.jks \
-            -storepass "$KEYSTORE_PASSWORD" \
-            -alias "$KEY_ALIAS"
+            -storepass "$KEYSTORE_PASSWORD"
 
-      - name: Build Release APK
+      - name: Build SafeShake release APK
         run: flutter build apk --release
 
-      - name: Verify signed APK
+      - name: Verify APK exists
         run: |
-          APK="build/app/outputs/flutter-apk/app-release.apk"
+          APK_PATH="build/app/outputs/flutter-apk/app-release.apk"
 
-          if [ ! -s "$APK" ]; then
-            echo "ERROR: APK file was not generated."
+          if [ ! -f "$APK_PATH" ]; then
+            echo "ERROR: Release APK was not generated."
             exit 1
           fi
 
-          echo "APK successfully generated."
-          ls -lh "$APK"
+          ls -lh "$APK_PATH"
 
-          APKSIGNER=$(find "$ANDROID_HOME/build-tools" \
-            -name apksigner -type f | sort -V | tail -n 1)
+      - name: Verify APK signature
+        run: |
+          APKSIGNER="$(find "$ANDROID_HOME/build-tools" \
+            -type f -name apksigner | sort -V | tail -n 1)"
 
           if [ -z "$APKSIGNER" ]; then
-            echo "ERROR: apksigner not found."
+            echo "ERROR: apksigner was not found."
             exit 1
           fi
 
-          "$APKSIGNER" verify --verbose --print-certs "$APK"
+          "$APKSIGNER" verify --verbose \
+            build/app/outputs/flutter-apk/app-release.apk
 
-      - name: Upload Signed APK
+      - name: Upload SafeShake APK
         uses: actions/upload-artifact@v4
         with:
           name: safeshake-android-release-apk
           path: build/app/outputs/flutter-apk/app-release.apk
           if-no-files-found: error
-          compression-level: 0
-          retention-days: 1
+          retention-days: 30
 
       - name: Publish build summary
-        if: success()
         run: |
           echo "## Brainyte SafeShake Android Build" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
-          echo "- **Status:** Successful" >> "$GITHUB_STEP_SUMMARY"
-          echo "- **Format:** Signed Android APK" >> "$GITHUB_STEP_SUMMARY"
-          echo "- **Package:** com.wellsint.brainyte.safeshake" >> "$GITHUB_STEP_SUMMARY"
-          echo "- **Version:** $(grep '^version:' pubspec.yaml | head -n 1 | awk '{print $2}')" >> "$GITHUB_STEP_SUMMARY"
-          echo "- **File:** app-release.apk" >> "$GITHUB_STEP_SUMMARY"
-          echo "- **Signing:** Verified" >> "$GITHUB_STEP_SUMMARY"
-          echo "- **Retention:** 1 day" >> "$GITHUB_STEP_SUMMARY"
-          echo "" >> "$GITHUB_STEP_SUMMARY"
-          echo "Download the APK from the workflow Artifacts section." >> "$GITHUB_STEP_SUMMARY"
+          echo "- Build status: Successful" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Build type: Release APK" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Package ID: com.wellsint.brainyte.safeshake" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Android SDK: 36" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Flutter: 3.44.3" >> "$GITHUB_STEP_SUMMARY"
+          echo "- APK: app-release.apk" >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Clean signing files
+      - name: Clean up signing files
         if: always()
         run: |
           rm -f android/key.properties
