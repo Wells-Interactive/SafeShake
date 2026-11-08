@@ -92,9 +92,9 @@ jobs:
           mkdir -p android/app
 
           echo "$KEYSTORE_BASE64" | base64 --decode \
-            > android/app/safeshake-release.jks
+            > android/app/brainyte-apps-release.jks
 
-          if [ ! -s android/app/safeshake-release.jks ]; then
+          if [ ! -s android/app/brainyte-apps-release.jks ]; then
             echo "ERROR: Keystore file is empty or invalid."
             exit 1
           fi
@@ -118,7 +118,7 @@ jobs:
           storePassword=$KEYSTORE_PASSWORD
           keyPassword=$KEY_PASSWORD
           keyAlias=$KEY_ALIAS
-          storeFile=app/safeshake-release.jks
+          storeFile=app/brainyte-apps-release.jks
           EOF
 
       - name: Verify decoded keystore
@@ -127,7 +127,7 @@ jobs:
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
         run: |
           keytool -list \
-            -keystore android/app/safeshake-release.jks \
+            -keystore android/app/brainyte-apps-release.jks \
             -storepass "$KEYSTORE_PASSWORD" \
             -alias "$KEY_ALIAS"
 
