@@ -45,6 +45,39 @@ jobs:
       - name: Get Flutter dependencies
         run: flutter pub get
 
+      # --------------------------------------------------
+      # RESTORE FIREBASE ANDROID CONFIGURATION
+      # --------------------------------------------------
+
+      - name: Restore Firebase configuration
+        env:
+          GOOGLE_SERVICES_JSON_BASE64: ${{ secrets.GOOGLE_SERVICES_JSON_BASE64 }}
+        run: |
+          set -e
+
+          if [ -z "$GOOGLE_SERVICES_JSON_BASE64" ]; then
+            echo "ERROR: GOOGLE_SERVICES_JSON_BASE64 secret is missing."
+            exit 1
+          fi
+
+          mkdir -p android/app
+
+          echo "$GOOGLE_SERVICES_JSON_BASE64" | base64 --decode \
+            > android/app/google-services.json
+
+          if [ ! -s android/app/google-services.json ]; then
+            echo "ERROR: Firebase configuration file is empty."
+            exit 1
+          fi
+
+          python3 -m json.tool android/app/google-services.json > /dev/null
+
+          echo "Firebase Android configuration restored successfully."
+
+      # --------------------------------------------------
+      # ANDROID SIGNING CONFIGURATION
+      # --------------------------------------------------
+
       - name: Decode Android keystore
         env:
           KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
@@ -98,11 +131,17 @@ jobs:
             -storepass "$KEYSTORE_PASSWORD" \
             -alias "$KEY_ALIAS"
 
+      # --------------------------------------------------
+      # BUILD RELEASE APK
+      # --------------------------------------------------
+
       - name: Build Release APK
         run: flutter build apk --release
 
       - name: Verify APK file
         run: |
+          set -e
+
           APK_PATH="build/app/outputs/flutter-apk/app-release.apk"
 
           echo "Checking generated SafeShake APK..."
@@ -117,6 +156,10 @@ jobs:
 
           echo "SafeShake APK successfully generated."
 
+      # --------------------------------------------------
+      # UPLOAD APK
+      # --------------------------------------------------
+
       - name: Upload Signed APK
         uses: actions/upload-artifact@v4
         with:
@@ -125,6 +168,10 @@ jobs:
           if-no-files-found: error
           compression-level: 0
           retention-days: 1
+
+      # --------------------------------------------------
+      # BUILD SUMMARY
+      # --------------------------------------------------
 
       - name: Publish build summary
         if: success()
@@ -140,8 +187,8 @@ jobs:
           echo "" >> "$GITHUB_STEP_SUMMARY"
           echo "The signed SafeShake APK is available in the workflow Artifacts section." >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Clean signing files
-        if: always()
-        run: |
-          rm -f android/key.properties
-          rm -f android/app/safeshake-release.jks
+      # --------------------------------------------------
+      # CLEANUP
+      # --------------------------------------------------
+
+      - name: Clean signing
