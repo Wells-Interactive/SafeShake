@@ -47,7 +47,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                   const SizedBox(height: 16),
                   Text('Reset link sent', style: Theme.of(context).textTheme.headlineSmall, textAlign: TextAlign.center),
                   const SizedBox(height: 8),
-                  Text('Check your email for instructions to reset your password.', textAlign: TextAlign.center),
+                  const Text('Check your email for instructions to reset your password.', textAlign: TextAlign.center),
                   const SizedBox(height: 24),
                   FilledButton(onPressed: () => Navigator.pop(context), child: const Text('Back to Login')),
                 ] else ...[

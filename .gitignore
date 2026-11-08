@@ -17,6 +17,8 @@ GoogleService-Info.plist
 # IDE
 .idea/
 *.iml
+*.kilo
+.kilo
 
 # Build
 build/

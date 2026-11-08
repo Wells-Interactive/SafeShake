@@ -120,13 +120,13 @@ class _WelcomeStep extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.health_and_safety_rounded, size: 96, color: AppColors.safety),
+          const Icon(Icons.health_and_safety_rounded, size: 96, color: AppColors.safety),
           const SizedBox(height: 24),
           Text('Welcome to SafeShake', style: Theme.of(context).textTheme.headlineMedium, textAlign: TextAlign.center),
           const SizedBox(height: 16),
           Text('Safety in the Shake of Your Hand', style: Theme.of(context).textTheme.titleMedium, textAlign: TextAlign.center),
           const SizedBox(height: 24),
-          Text('Let\'s set up your emergency alert profile. This will only take a few minutes.', textAlign: TextAlign.center),
+          const Text('Let\'s set up your emergency alert profile. This will only take a few minutes.', textAlign: TextAlign.center),
         ],
       ),
     );
@@ -326,7 +326,7 @@ class _SetupCompleteStep extends StatelessWidget {
           SizedBox(height: 24),
           Text('Setup Complete', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold), textAlign: TextAlign.center),
           SizedBox(height: 16),
-          Text('You\'re all set! SafeShake is now ready to protect you.', textAlign: TextAlign.center),
+          Text('You\'re all set! SafeShake is ready for emergencies.', textAlign: TextAlign.center),
         ],
       ),
     );

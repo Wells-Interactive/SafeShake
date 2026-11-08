@@ -44,7 +44,8 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  Future<bool> registerWithEmail(String email, String password, String fullName) async {
+  Future<bool> registerWithEmail(
+      String email, String password, String fullName) async {
     _setLoading(true);
     _clearError();
     try {
@@ -67,7 +68,8 @@ class AuthProvider extends ChangeNotifier {
     _setLoading(true);
     _clearError();
     try {
-      await _authService.signInWithGoogle();
+      final credential = await _authService.signInWithGoogle();
+      if (credential == null) return false;
       _user = _authService.currentUser;
       notifyListeners();
       return true;
@@ -96,7 +98,8 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  Future<bool> signInWithPhoneCredential(String verificationId, String smsCode) async {
+  Future<bool> signInWithPhoneCredential(
+      String verificationId, String smsCode) async {
     _setLoading(true);
     _clearError();
     try {

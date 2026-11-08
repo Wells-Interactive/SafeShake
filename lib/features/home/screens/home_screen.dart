@@ -4,9 +4,6 @@ import '../../../../shared/providers/settings_provider.dart';
 import '../../../../shared/providers/contacts_provider.dart';
 import '../../../../shared/providers/auth_provider.dart';
 import '../../../../shared/providers/shake_provider.dart';
-import '../../../../core/services/shake_service.dart';
-import '../../../../core/models/app_settings.dart';
-import '../../../../core/models/emergency_contact.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../app/theme/app_colors.dart';
 
@@ -28,25 +25,50 @@ class _HomeScreenState extends State<HomeScreen> {
     final authProvider = context.read<AuthProvider>();
     final settingsProvider = context.read<SettingsProvider>();
     final contactsProvider = context.read<ContactsProvider>();
+    final shakeProvider = context.read<ShakeProvider>();
 
-    if (authProvider.user != null) {
-      await settingsProvider.loadSettings();
-      await contactsProvider.loadContacts();
+    if (authProvider.user == null) return;
 
-      final shakeProvider = context.read<ShakeProvider>();
-      shakeProvider.attachShakeService(ShakeService(
-        onShakeDetected: () => _handleShake(settingsProvider.settings, contactsProvider.contacts),
-      ));
+    await settingsProvider.loadSettings();
+    if (!mounted) return;
+    await contactsProvider.loadContacts();
+    if (!mounted) return;
 
-      if (settingsProvider.settings.protectionActive) {
-        shakeProvider.startListening(settingsProvider.settings, contactsProvider.contacts);
-      }
+    if (settingsProvider.settings.protectionActive) {
+      shakeProvider.startListening(
+        settingsProvider.settings,
+        contactsProvider.contacts,
+      );
     }
   }
 
-  Future<void> _handleShake(AppSettings settings, List<EmergencyContact> contacts) async {
+  Future<void> _setProtectionActive(bool active) async {
+    final settingsProvider = context.read<SettingsProvider>();
+    final contactsProvider = context.read<ContactsProvider>();
     final shakeProvider = context.read<ShakeProvider>();
-    await shakeProvider.handleShake(settings, contacts);
+    final messenger = ScaffoldMessenger.of(context);
+    final success = await settingsProvider.setProtectionActive(active);
+    if (!mounted) return;
+    if (!success) {
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(
+            settingsProvider.errorMessage ??
+                'Could not update protection settings.',
+          ),
+        ),
+      );
+      return;
+    }
+
+    if (active) {
+      shakeProvider.startListening(
+        settingsProvider.settings,
+        contactsProvider.contacts,
+      );
+    } else {
+      shakeProvider.stopListening();
+    }
   }
 
   @override
@@ -67,23 +89,27 @@ class _HomeScreenState extends State<HomeScreen> {
           IconButton(
             icon: const Icon(Icons.logout),
             onPressed: () async {
+              final authProvider = context.read<AuthProvider>();
+              final navigator = Navigator.of(context);
               final confirm = await showDialog<bool>(
                 context: context,
                 builder: (context) => AlertDialog(
                   title: const Text('Sign Out'),
                   content: const Text('Are you sure you want to sign out?'),
                   actions: [
-                    TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
-                    FilledButton(onPressed: () => Navigator.pop(context, true), child: const Text('Sign Out')),
+                    TextButton(
+                        onPressed: () => Navigator.pop(context, false),
+                        child: const Text('Cancel')),
+                    FilledButton(
+                        onPressed: () => Navigator.pop(context, true),
+                        child: const Text('Sign Out')),
                   ],
                 ),
               );
-              if (confirm == true && mounted) {
-                await context.read<AuthProvider>().signOut();
-                if (mounted) {
-                  Navigator.of(context).pushReplacementNamed('/');
-                }
-              }
+              if (confirm != true || !mounted) return;
+              await authProvider.signOut();
+              if (!mounted) return;
+              navigator.pushReplacementNamed('/');
             },
           ),
         ],
@@ -104,15 +130,26 @@ class _HomeScreenState extends State<HomeScreen> {
                       child: Column(
                         children: [
                           Icon(
-                            protectionActive ? Icons.shield : Icons.pause_circle_outline,
+                            protectionActive
+                                ? Icons.shield
+                                : Icons.pause_circle_outline,
                             size: 72,
-                            color: protectionActive ? AppColors.active : Theme.of(context).colorScheme.outline,
+                            color: protectionActive
+                                ? AppColors.active
+                                : Theme.of(context).colorScheme.outline,
                           ),
                           const SizedBox(height: 16),
                           Text(
-                            protectionActive ? 'PROTECTION ACTIVE' : 'PROTECTION PAUSED',
-                            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                                  color: protectionActive ? AppColors.active : null,
+                            protectionActive
+                                ? 'PROTECTION ACTIVE'
+                                : 'PROTECTION PAUSED',
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleLarge
+                                ?.copyWith(
+                                  color: protectionActive
+                                      ? AppColors.active
+                                      : null,
                                   fontWeight: FontWeight.bold,
                                 ),
                           ),
@@ -127,14 +164,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           SwitchListTile(
                             title: const Text('Protection'),
                             value: protectionActive,
-                            onChanged: (value) async {
-                              await settingsProvider.setProtectionActive(value);
-                              if (value) {
-                                shakeProvider.startListening(settingsProvider.settings, contactsProvider.contacts);
-                              } else {
-                                shakeProvider.stopListening();
-                              }
-                            },
+                            onChanged: (value) => _setProtectionActive(value),
                           ),
                         ],
                       ),
@@ -145,9 +175,13 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: ListTile(
                       leading: const Icon(Icons.people),
                       title: const Text('Emergency Contacts'),
-                      subtitle: Text('$contactsCount of ${AppConstants.maxContacts} configured'),
+                      subtitle: Text(
+                          '$contactsCount of ${AppConstants.maxContacts} configured'),
                       trailing: contactsProvider.isLoading
-                          ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
+                          ? const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(strokeWidth: 2))
                           : null,
                     ),
                   ),
@@ -159,7 +193,9 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   if (shakeProvider.lastError != null) ...[
                     const SizedBox(height: 16),
-                    Text(shakeProvider.lastError!, style: const TextStyle(color: AppColors.safety), textAlign: TextAlign.center),
+                    Text(shakeProvider.lastError!,
+                        style: const TextStyle(color: AppColors.safety),
+                        textAlign: TextAlign.center),
                   ],
                 ],
               ),

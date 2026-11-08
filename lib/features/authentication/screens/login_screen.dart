@@ -55,15 +55,25 @@ class _LoginScreenState extends State<LoginScreen> {
             child: ListView(
               children: [
                 const SizedBox(height: 48),
-                Icon(Icons.health_and_safety_rounded, size: 64, color: AppColors.safety),
+                const Icon(Icons.health_and_safety_rounded,
+                    size: 64, color: AppColors.safety),
                 const SizedBox(height: 16),
-                Text('SafeShake', style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold), textAlign: TextAlign.center),
+                Text('SafeShake',
+                    style: Theme.of(context)
+                        .textTheme
+                        .headlineMedium
+                        ?.copyWith(fontWeight: FontWeight.bold),
+                    textAlign: TextAlign.center),
                 const SizedBox(height: 8),
-                Text('Safety in the Shake of Your Hand', style: Theme.of(context).textTheme.bodyMedium, textAlign: TextAlign.center),
+                Text('Safety in the Shake of Your Hand',
+                    style: Theme.of(context).textTheme.bodyMedium,
+                    textAlign: TextAlign.center),
                 const SizedBox(height: 32),
                 TextFormField(
                   controller: _emailController,
-                  decoration: const InputDecoration(labelText: 'Email', prefixIcon: Icon(Icons.email_outlined)),
+                  decoration: const InputDecoration(
+                      labelText: 'Email',
+                      prefixIcon: Icon(Icons.email_outlined)),
                   keyboardType: TextInputType.emailAddress,
                   validator: Validators.validateEmail,
                 ),
@@ -74,8 +84,11 @@ class _LoginScreenState extends State<LoginScreen> {
                     labelText: 'Password',
                     prefixIcon: const Icon(Icons.lock_outlined),
                     suffixIcon: IconButton(
-                      icon: Icon(_obscurePassword ? Icons.visibility_off : Icons.visibility),
-                      onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                      icon: Icon(_obscurePassword
+                          ? Icons.visibility_off
+                          : Icons.visibility),
+                      onPressed: () =>
+                          setState(() => _obscurePassword = !_obscurePassword),
                     ),
                   ),
                   obscureText: _obscurePassword,
@@ -85,23 +98,46 @@ class _LoginScreenState extends State<LoginScreen> {
                 Consumer<AuthProvider>(
                   builder: (context, authProvider, _) {
                     if (authProvider.isLoading) {
-                      return const FilledButton(onPressed: null, child: SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)));
+                      return const FilledButton(
+                          onPressed: null,
+                          child: SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: CircularProgressIndicator(
+                                  strokeWidth: 2, color: Colors.white)));
                     }
-                    return FilledButton(onPressed: _signIn, child: const Text('Sign In'));
+                    return FilledButton(
+                        onPressed: _signIn, child: const Text('Sign In'));
                   },
                 ),
                 if (context.watch<AuthProvider>().errorMessage != null) ...[
                   const SizedBox(height: 12),
-                  Text(context.watch<AuthProvider>().errorMessage!, style: const TextStyle(color: AppColors.safety), textAlign: TextAlign.center),
+                  Text(context.watch<AuthProvider>().errorMessage!,
+                      style: const TextStyle(color: AppColors.safety),
+                      textAlign: TextAlign.center),
                 ],
                 const SizedBox(height: 16),
-                OutlinedButton.icon(onPressed: _signInWithGoogle, icon: const Icon(Icons.login), label: const Text('Sign in with Google')),
+                OutlinedButton.icon(
+                  onPressed: context.watch<AuthProvider>().isLoading
+                      ? null
+                      : _signInWithGoogle,
+                  icon: const Icon(Icons.login),
+                  label: const Text('Sign in with Google'),
+                ),
                 const SizedBox(height: 16),
-                TextButton(onPressed: () => Navigator.pushNamed(context, '/forgot-password'), child: const Text('Forgot password?')),
+                TextButton(
+                    onPressed: () =>
+                        Navigator.pushNamed(context, '/forgot-password'),
+                    child: const Text('Forgot password?')),
                 const SizedBox(height: 8),
-                TextButton(onPressed: () => Navigator.pushNamed(context, '/register'), child: const Text('Don\'t have an account? Sign up')),
+                TextButton(
+                    onPressed: () => Navigator.pushNamed(context, '/register'),
+                    child: const Text('Don\'t have an account? Sign up')),
                 const SizedBox(height: 16),
-                TextButton(onPressed: () => Navigator.pushNamed(context, '/phone-auth'), child: const Text('Sign in with phone number')),
+                TextButton(
+                    onPressed: () =>
+                        Navigator.pushNamed(context, '/phone-auth'),
+                    child: const Text('Sign in with phone number')),
               ],
             ),
           ),

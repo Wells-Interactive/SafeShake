@@ -26,20 +26,25 @@ class SafeShakeApp extends StatelessWidget {
         Provider.value(value: alertService),
         ChangeNotifierProxyProvider<AuthProvider, SettingsProvider>(
           create: (_) => SettingsProvider(null),
-          update: (_, authProvider, __) {
-            return SettingsProvider(authProvider.user?.uid)..loadSettings();
+          update: (_, authProvider, settingsProvider) {
+            settingsProvider!.setUserId(authProvider.user?.uid);
+            return settingsProvider;
           },
         ),
         ChangeNotifierProxyProvider<AuthProvider, ContactsProvider>(
           create: (_) => ContactsProvider(null),
-          update: (_, authProvider, __) {
-            return ContactsProvider(authProvider.user?.uid)..loadContacts();
+          update: (_, authProvider, contactsProvider) {
+            contactsProvider!.setUserId(authProvider.user?.uid);
+            return contactsProvider;
           },
         ),
         ChangeNotifierProxyProvider<AuthProvider, ShakeProvider>(
           create: (_) => ShakeProvider(alertService),
-          update: (_, authProvider, __) {
-            return ShakeProvider(alertService);
+          update: (_, authProvider, shakeProvider) {
+            if (authProvider.user == null) {
+              shakeProvider!.stopListening();
+            }
+            return shakeProvider!;
           },
         ),
       ],

@@ -6,9 +6,24 @@ import '../../core/services/firebase_service.dart';
 
 class ContactsProvider extends ChangeNotifier {
   final FirebaseService _firebaseService = FirebaseService();
-  final String? _userId;
+  String? _userId;
 
   ContactsProvider(this._userId);
+
+  void setUserId(String? userId) {
+    if (_userId == userId) return;
+    _userId = userId;
+    _contacts = [];
+    _errorMessage = null;
+    Future<void>.microtask(() async {
+      if (_userId != userId) return;
+      if (userId == null || userId.isEmpty) {
+        notifyListeners();
+        return;
+      }
+      await loadContacts();
+    });
+  }
 
   List<EmergencyContact> _contacts = [];
   bool _isLoading = false;
@@ -21,11 +36,13 @@ class ContactsProvider extends ChangeNotifier {
   bool get canAddMore => _contacts.length < AppConstants.maxContacts;
 
   Future<void> loadContacts() async {
-    if (_userId == null || _userId.isEmpty) return;
+    final userId = _userId;
+    if (userId == null || userId.isEmpty) return;
     _setLoading(true);
     _clearError();
     try {
-      final snapshot = await _firebaseService.userCollection(_userId).get();
+      final snapshot = await _firebaseService.userCollection(userId).get();
+      if (_userId != userId) return;
       _contacts = snapshot.docs
           .map((doc) => EmergencyContact.fromMap(doc.id, doc.data()))
           .toList();
@@ -40,7 +57,8 @@ class ContactsProvider extends ChangeNotifier {
   }
 
   Future<bool> addContact(EmergencyContact contact) async {
-    if (_userId == null || _userId.isEmpty) {
+    final userId = _userId;
+    if (userId == null || userId.isEmpty) {
       _setError('You must be signed in to add contacts.');
       return false;
     }
@@ -52,9 +70,10 @@ class ContactsProvider extends ChangeNotifier {
     _clearError();
     try {
       await _firebaseService
-          .userCollection(_userId)
+          .userCollection(userId)
           .doc(contact.id)
           .set(contact.toMap());
+      if (_userId != userId) return false;
       _contacts.add(contact);
       notifyListeners();
       return true;
@@ -70,14 +89,16 @@ class ContactsProvider extends ChangeNotifier {
   }
 
   Future<bool> updateContact(EmergencyContact contact) async {
-    if (_userId == null || _userId.isEmpty) return false;
+    final userId = _userId;
+    if (userId == null || userId.isEmpty) return false;
     _setLoading(true);
     _clearError();
     try {
       await _firebaseService
-          .userCollection(_userId)
+          .userCollection(userId)
           .doc(contact.id)
           .update(contact.toMap());
+      if (_userId != userId) return false;
       final index = _contacts.indexWhere((c) => c.id == contact.id);
       if (index >= 0) {
         _contacts[index] = contact;
@@ -96,11 +117,13 @@ class ContactsProvider extends ChangeNotifier {
   }
 
   Future<bool> deleteContact(String contactId) async {
-    if (_userId == null || _userId.isEmpty) return false;
+    final userId = _userId;
+    if (userId == null || userId.isEmpty) return false;
     _setLoading(true);
     _clearError();
     try {
-      await _firebaseService.userCollection(_userId).doc(contactId).delete();
+      await _firebaseService.userCollection(userId).doc(contactId).delete();
+      if (_userId != userId) return false;
       _contacts.removeWhere((c) => c.id == contactId);
       notifyListeners();
       return true;

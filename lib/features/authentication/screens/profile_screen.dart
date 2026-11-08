@@ -20,7 +20,7 @@ class ProfileScreen extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               const SizedBox(height: 24),
-              CircleAvatar(radius: 48, backgroundColor: AppColors.safety, child: Icon(Icons.person, size: 48, color: Colors.white)),
+              const CircleAvatar(radius: 48, backgroundColor: AppColors.safety, child: Icon(Icons.person, size: 48, color: Colors.white)),
               const SizedBox(height: 16),
               Text(user?.displayName ?? 'User', textAlign: TextAlign.center, style: Theme.of(context).textTheme.headlineSmall),
               const SizedBox(height: 4),

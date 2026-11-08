@@ -20,18 +20,18 @@ class ShakeProvider extends ChangeNotifier {
   bool get isProcessing => _isProcessing;
   String? get lastError => _lastError;
 
-  void attachShakeService(ShakeService service) {
-    _shakeService?.dispose();
-    _shakeService = service;
-  }
-
   void startListening(AppSettings settings, List<EmergencyContact> contacts) {
-    if (_isActive) return;
+    _shakeService?.dispose();
     _isActive = true;
     _lastError = null;
 
     _shakeService = ShakeService(
+      sensitivity: settings.shakeSensitivity,
       onShakeDetected: () => handleShake(settings, contacts),
+      onError: (error) {
+        _lastError = 'Shake sensor error: $error';
+        notifyListeners();
+      },
     );
     _shakeService!.start();
     notifyListeners();
@@ -44,7 +44,8 @@ class ShakeProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> handleShake(AppSettings settings, List<EmergencyContact> contacts) async {
+  Future<void> handleShake(
+      AppSettings settings, List<EmergencyContact> contacts) async {
     if (_isProcessing) return;
     if (!settings.protectionActive) return;
     if (contacts.isEmpty) return;

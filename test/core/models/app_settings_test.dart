@@ -4,7 +4,7 @@ import 'package:safeshake/core/models/app_settings.dart';
 void main() {
   group('AppSettings', () {
     test('creates with default values', () {
-      final settings = const AppSettings(userId: 'uid123');
+      const settings = AppSettings(userId: 'uid123');
       expect(settings.userId, 'uid123');
       expect(settings.alertMode, AlertMode.immediate);
       expect(settings.shakeSensitivity, ShakeSensitivity.medium);
@@ -16,7 +16,7 @@ void main() {
     });
 
     test('copyWith updates specified fields', () {
-      final settings = const AppSettings(userId: 'uid');
+      const settings = AppSettings(userId: 'uid');
       final updated = settings.copyWith(alertMode: AlertMode.countdown, countdownSeconds: 15);
       expect(updated.alertMode, AlertMode.countdown);
       expect(updated.countdownSeconds, 15);
@@ -24,7 +24,7 @@ void main() {
     });
 
     test('toMap and fromMap roundtrip', () {
-      final settings = AppSettings(
+      const settings = AppSettings(
         userId: 'uid',
         alertMode: AlertMode.countdown,
         shakeSensitivity: ShakeSensitivity.high,
@@ -47,7 +47,7 @@ void main() {
     });
 
     test('fromMap falls back to defaults for missing fields', () {
-      final settings = AppSettings.fromMap('uid', {});
+      final settings = AppSettings.fromMap('uid', const {});
       expect(settings.alertMode, AlertMode.immediate);
       expect(settings.shakeSensitivity, ShakeSensitivity.medium);
       expect(settings.countdownSeconds, 10);
