@@ -97,4 +97,75 @@ jobs:
           fi
 
           cat > android/key.properties <<EOF
-          storePassword
+          storePassword=$KEYSTORE_PASSWORD
+          keyPassword=$KEY_PASSWORD
+          keyAlias=$KEY_ALIAS
+          storeFile=app/safeshake-release.jks
+          EOF
+
+          echo "Android signing properties created."
+
+      - name: Verify decoded keystore
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+        run: |
+          keytool -list \
+            -keystore android/app/safeshake-release.jks \
+            -storepass "$KEYSTORE_PASSWORD" \
+            -alias "$KEY_ALIAS"
+
+      - name: Build Release APK
+        run: flutter build apk --release
+
+      - name: Verify signed APK
+        run: |
+          APK="build/app/outputs/flutter-apk/app-release.apk"
+
+          if [ ! -s "$APK" ]; then
+            echo "ERROR: APK file was not generated."
+            exit 1
+          fi
+
+          echo "APK successfully generated."
+          ls -lh "$APK"
+
+          APKSIGNER=$(find "$ANDROID_HOME/build-tools" \
+            -name apksigner -type f | sort -V | tail -n 1)
+
+          if [ -z "$APKSIGNER" ]; then
+            echo "ERROR: apksigner not found."
+            exit 1
+          fi
+
+          "$APKSIGNER" verify --verbose --print-certs "$APK"
+
+      - name: Upload Signed APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: safeshake-android-release-apk
+          path: build/app/outputs/flutter-apk/app-release.apk
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 30
+
+      - name: Publish build summary
+        if: success()
+        run: |
+          echo "## Brainyte SafeShake Android Build" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "- **Status:** Successful" >> "$GITHUB_STEP_SUMMARY"
+          echo "- **Format:** Signed Android APK" >> "$GITHUB_STEP_SUMMARY"
+          echo "- **Package:** com.wellsint.brainyte.safeshake" >> "$GITHUB_STEP_SUMMARY"
+          echo "- **Version:** $(grep '^version:' pubspec.yaml | head -n 1 | awk '{print $2}')" >> "$GITHUB_STEP_SUMMARY"
+          echo "- **File:** app-release.apk" >> "$GITHUB_STEP_SUMMARY"
+          echo "- **Signing:** Verified" >> "$GITHUB_STEP_SUMMARY"
+          echo "- **Retention:** 30 days" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "Download the APK from the workflow Artifacts section." >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Clean signing files
+        if: always()
+        run: |
+          rm -f android/key.properties
+          rm -f android/app/safeshake-release.jks
