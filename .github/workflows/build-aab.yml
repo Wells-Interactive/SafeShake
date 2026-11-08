@@ -197,7 +197,7 @@ jobs:
           path: build/app/outputs/bundle/release/app-release.aab
           if-no-files-found: error
           compression-level: 0
-          retention-days: 7
+          retention-days: 1
 
       # --------------------------------------------------
       # BUILD SUMMARY
@@ -214,7 +214,7 @@ jobs:
           echo "- **Version:** $(grep '^version:' pubspec.yaml | head -n 1 | awk '{print $2}')" >> "$GITHUB_STEP_SUMMARY"
           echo "- **Signing:** Brainyte release keystore" >> "$GITHUB_STEP_SUMMARY"
           echo "- **Artifact:** safeshake-android-release-aab" >> "$GITHUB_STEP_SUMMARY"
-          echo "- **Retention:** 7 days" >> "$GITHUB_STEP_SUMMARY"
+          echo "- **Retention:** 1 day" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
           echo "The signed SafeShake AAB is available in the workflow Artifacts section." >> "$GITHUB_STEP_SUMMARY"
 
