@@ -14,6 +14,26 @@ We believe personal safety technology should be simple, accessible, and availabl
 
 ---
 
+# 🧪 Testing
+
+Get the latest Android version of SafeShake.
+
+<p align="center">
+  <a href="https://play.google.com/store/apps/details?id=com.wellsint.brainyte.safeshake">
+    <img src="https://www.gstatic.com/android/market_images/web/play_prism_hlock_v2_1x.png" alt="Download SafeShake">
+  </a>
+</p>
+ **Android:** Download the latest version from Google Play Store, You must have been added to the list to see it Or wait till release date.
+NOTE: This Version is only for testing, So all message sending might not work you are free to report bugs.
+---
+
+# 📱 Supported Platforms
+
+* Android
+* iOS
+
+---
+
 # ⚠️ The Problem
 
 Every day, people find themselves in situations where they feel unsafe but may be unable to make a phone call, type a message, or visibly ask for help.
@@ -119,85 +139,7 @@ Google OAuth entries.
 
 ---
 
-# 🔥 Firebase Setup
 
-SafeShake uses Firebase for authentication, Firestore, Storage, Messaging, and Crashlytics.
-
-### Prerequisites
-
-1. Create a Firebase project at [console.firebase.google.com](https://console.firebase.google.com)
-2. Add Android and iOS apps to the project
-3. Download `google-services.json` (Android) and `GoogleService-Info.plist` (iOS)
-4. Run `flutterfire configure` to generate `lib/firebase_options.dart`
-
-### Firestore Security Rules
-
-Deploy the following rules to Firestore:
-
-```
-rules_version = '2';
-service cloud.firestore {
-  match /databases/{database}/documents {
-    match /users/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
-      match /contacts/{contactId} {
-        allow read, write: if request.auth != null && request.auth.uid == userId;
-      }
-    }
-  }
-}
-```
-
----
-
-# 🚀 Local Setup
-
-### Prerequisites
-
-* Flutter SDK >= 3.4.0
-* Android Studio / Xcode
-* Firebase project configured
-
-### Steps
-
-```bash
-# Clone the repository
-git clone <repository-url>
-cd SafeShake
-
-# Install dependencies
-flutter pub get
-
-# Generate Firebase options (requires FlutterFire CLI)
-flutterfire configure
-
-# Run the app
-flutter run
-```
-
----
-
-# 🧪 Testing
-
-```bash
-flutter test
-```
-
-Tests cover:
-* Contact model serialization
-* Settings model roundtrip
-* Input validation
-* Alert service behavior
-* Contacts empty state widget
-
----
-
-# 📱 Supported Platforms
-
-* Android
-* iOS
-
----
 
 # 🔒 Security Notes
 
