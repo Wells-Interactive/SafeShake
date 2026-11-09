@@ -134,7 +134,7 @@ jobs:
           storePassword=$KEYSTORE_PASSWORD
           keyPassword=$KEY_PASSWORD
           keyAlias=$KEY_ALIAS
-          storeFile=app/brainyte-apps-release.jks
+          storeFile=brainyte-apps-release.jks
           EOF
 
           echo "Android signing configuration created."
