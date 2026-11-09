@@ -1,3 +1,6 @@
+import java.util.Properties
+import java.io.FileInputStream
+
 plugins {
     id("com.android.application")
 
@@ -9,10 +12,17 @@ plugins {
     id("dev.flutter.flutter-gradle-plugin")
 }
 
+// Load Brainyte release signing credentials
+val keystoreProperties = Properties()
+val keystorePropertiesFile = rootProject.file("key.properties")
+
+if (keystorePropertiesFile.exists()) {
+    keystoreProperties.load(FileInputStream(keystorePropertiesFile))
+}
+
 android {
     namespace = "com.wellsint.brainyte.safeshake"
 
-    // Required by flutter_local_notifications 23.0.0
     compileSdk = 37
 
     ndkVersion = flutter.ndkVersion
@@ -21,7 +31,6 @@ android {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
 
-        // Required by flutter_local_notifications
         isCoreLibraryDesugaringEnabled = true
     }
 
@@ -35,12 +44,37 @@ android {
         versionName = flutter.versionName
     }
 
+    // Brainyte release signing configuration
+    signingConfigs {
+        create("release") {
+            val alias = keystoreProperties["keyAlias"] as String?
+            val password = keystoreProperties["keyPassword"] as String?
+            val storePasswordValue = keystoreProperties["storePassword"] as String?
+            val storeFileValue = keystoreProperties["storeFile"] as String?
+
+            if (
+                alias.isNullOrBlank() ||
+                password.isNullOrBlank() ||
+                storePasswordValue.isNullOrBlank() ||
+                storeFileValue.isNullOrBlank()
+            ) {
+                throw GradleException(
+                    "Brainyte release signing credentials are missing. " +
+                    "Check android/key.properties."
+                )
+            }
+
+            keyAlias = alias
+            keyPassword = password
+            this.storePassword = storePasswordValue
+            storeFile = file(storeFileValue)
+        }
+    }
+
     buildTypes {
         release {
-            // Debug signing retained for testing.
-            // Replace with your Brainyte release signing configuration
-            // before publishing to production.
-            signingConfig = signingConfigs.getByName("debug")
+            // IMPORTANT: Use the Brainyte release keystore.
+            signingConfig = signingConfigs.getByName("release")
 
             isMinifyEnabled = false
             isShrinkResources = false
@@ -60,7 +94,6 @@ flutter {
 }
 
 dependencies {
-    // Required by flutter_local_notifications 23.0.0
     coreLibraryDesugaring(
         "com.android.tools:desugar_jdk_libs:2.1.4"
     )
