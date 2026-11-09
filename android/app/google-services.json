@@ -1,0 +1,54 @@
+{
+  "project_info": {
+    "project_number": "716607076837",
+    "project_id": "safeshake-ea0eb",
+    "storage_bucket": "safeshake-ea0eb.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:716607076837:android:a234f312c7223861add70c",
+        "android_client_info": {
+          "package_name": "com.wellsint.brainyte.safeshake"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "716607076837-92oqb947dabkqa4mlmjaclqsf8ck87g7.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.wellsint.brainyte.safeshake",
+            "certificate_hash": "1d6d539b5671567f49a050ff8b6b770c24458979"
+          }
+        },
+        {
+          "client_id": "716607076837-t2ndk64d8dh3haprhvp0lj68g4imnvbd.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCbuHUzlsNIljKPvfhj-XO7BuCyFUKF4z4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "716607076837-t2ndk64d8dh3haprhvp0lj68g4imnvbd.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "716607076837-349e9f6mfpvmdnhbbj5i0h3f0rh6tqmd.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.wellsint.brainyte.safeshake"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
