@@ -78,10 +78,10 @@ jobs:
           echo "Firebase Android configuration restored successfully."
 
       # --------------------------------------------------
-      # RESTORE BRAINYTE RELEASE KEYSTORE
+      # RESTORE BRAINYTE RELEASE TORE
       # --------------------------------------------------
 
-      - name: Decode Brainyte Android keystore
+      - name: Decode Brainyte Android tore
         env:
           KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
         run: |
@@ -134,7 +134,7 @@ jobs:
           storePassword=$KEYSTORE_PASSWORD
           keyPassword=$KEY_PASSWORD
           keyAlias=$KEY_ALIAS
-          storeFile=app/brainyte-apps-release.jks
+          storeFile=brainyte-apps-release.jks
           EOF
 
           echo "Android signing configuration created."
