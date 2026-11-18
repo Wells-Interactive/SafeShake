@@ -11,7 +11,7 @@ Formerly known as **SOSAlerts**, SafeShake is designed to provide a fast, discre
 SafeShake is currently seeking strategic partnerships, and collaboration opportunities to support its development and launch.
 
 We believe personal safety technology should be simple, accessible, and available when people need it most.
-
+PS: THIS APP IS LIMITED BY RESOURCES AND PERMISSIONS IT DOESN'T HAVE ACCESS TO.
 ---
 
 # 🧪 Testing
