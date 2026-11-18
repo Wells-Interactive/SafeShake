@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../app/routes/app_routes.dart';
@@ -12,26 +14,45 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen> {
+  bool _navigated = false;
+  Timer? _failsafe;
+
   @override
   void initState() {
     super.initState();
+    _failsafe = Timer(const Duration(seconds: 8), () => _goToLoginOrHome(false));
     _initializeAndNavigate();
+  }
+
+  @override
+  void dispose() {
+    _failsafe?.cancel();
+    super.dispose();
+  }
+
+  void _goToLoginOrHome(bool authenticated) {
+    if (!mounted || _navigated) return;
+    _navigated = true;
+    _failsafe?.cancel();
+    Navigator.pushReplacementNamed(
+      context,
+      authenticated ? AppRoutes.home : '/login',
+    );
   }
 
   Future<void> _initializeAndNavigate() async {
     await Future<void>.delayed(const Duration(seconds: 2));
-    if (!mounted) return;
+    if (!mounted || _navigated) return;
 
-    final authProvider = context.read<AuthProvider>();
+    var authenticated = false;
     try {
-      await authProvider.initialize().timeout(const Duration(seconds: 20));
-    } catch (_) {}
-    if (!mounted) return;
-
-    Navigator.pushReplacementNamed(
-      context,
-      authProvider.isAuthenticated ? AppRoutes.home : '/login',
-    );
+      final authProvider = context.read<AuthProvider>();
+      await authProvider.initialize().timeout(const Duration(seconds: 5));
+      authenticated = authProvider.isAuthenticated;
+    } catch (_) {
+      authenticated = false;
+    }
+    _goToLoginOrHome(authenticated);
   }
 
   @override

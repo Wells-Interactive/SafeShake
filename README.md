@@ -68,12 +68,6 @@ State management uses **Provider**. Business logic is separated into services an
 
 # ✨ Key Features
 
-## 📳 Shake Detection (False-Alarm Filtered)
-
-On Android, enabling Protection starts a native sensor foreground service with an ongoing notification. SafeShake requires **two shakes within a short time window** before triggering, which prevents false alarms from accidental movement. A detected shake displays a cancel action before an emergency alert is sent.
-
-iOS shake detection remains active only while the app is open.
-
 ## 🚨 Manual SOS Button
 
 A large, always-accessible "MANUAL SOS" button appears on the Home screen alongside shake detection. Use it when a shake gesture is not possible due to physical distress or a dropped phone.
@@ -96,15 +90,6 @@ When enabled and permitted, SafeShake fetches the user's exact latitude and long
 
 If a fresh GPS fix times out during an emergency, SafeShake immediately sends the last known cached location instead of waiting.
 
-## 📧 Email Alerts with SMS Fallback
-
-SafeShake sends emergency email alerts silently in the background via the Gmail API once OAuth 2.0 permissions are granted.
-
-If there is no internet connection during an emergency, SafeShake automatically falls back to sending a direct cellular SMS via Android's `SmsManager` API to the saved contact phone numbers.
-
-## 🔄 Force Update
-
-When a new minimum required version is published, SafeShake displays a non-dismissible update dialog at launch, directing users to update from the Google Play Store.
 
 ## ⏰ Morning Reminder
 
