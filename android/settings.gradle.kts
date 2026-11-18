@@ -26,8 +26,8 @@ plugins {
     id("com.android.application") version "9.1.1" apply false
 
     // Firebase configuration
-    id("com.google.gms.google-services") version "4.3.15" apply false
-    id("com.google.firebase.crashlytics") version "2.8.1" apply false
+    id("com.google.gms.google-services") version "4.4.2" apply false
+    id("com.google.firebase.crashlytics") version "3.0.8" apply false
 
     // Kotlin
     id("org.jetbrains.kotlin.android") version "2.3.20" apply false

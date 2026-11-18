@@ -19,8 +19,14 @@ class AuthProvider extends ChangeNotifier {
   bool get isInitialized => _isInitialized;
 
   Future<void> initialize() async {
-    await _firebaseService.initialize();
-    _user = _authService.currentUser;
+    try {
+      await _firebaseService.initialize();
+    } catch (_) {}
+    try {
+      _user = _authService.currentUser;
+    } catch (_) {
+      _user = null;
+    }
     _isInitialized = true;
     notifyListeners();
   }

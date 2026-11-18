@@ -1,8 +1,11 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import '../../core/models/app_settings.dart';
 import '../../core/services/firebase_service.dart';
+import '../../core/services/foreground_monitor_service.dart';
 
 class SettingsProvider extends ChangeNotifier {
   final FirebaseService _firebaseService = FirebaseService();
@@ -50,7 +53,11 @@ class SettingsProvider extends ChangeNotifier {
       final doc = await _firebaseService.userSettingsDoc(userId).get();
       if (_userId != userId) return;
       if (doc.exists) {
-        _settings = AppSettings.fromMap(userId, doc.data()!);
+        final data = doc.data()!;
+        _settings = AppSettings.fromMap(userId, data);
+        if (data['protectionConsentVersion'] != 1) {
+          await _saveSettings(_settings, userId);
+        }
       } else {
         _settings = AppSettings(userId: userId);
         await _saveSettings(_settings, userId);
@@ -68,18 +75,41 @@ class SettingsProvider extends ChangeNotifier {
   Future<bool> updateSettings(AppSettings newSettings) async {
     final userId = _userId;
     if (userId == null || userId.isEmpty) return false;
+
+    final previousSettings = _settings;
+    _settings = newSettings;
     _setLoading(true);
     _clearError();
+    notifyListeners();
+
     try {
       await _saveSettings(newSettings, userId);
       if (_userId != userId) return false;
       _settings = newSettings;
       notifyListeners();
+      if (Platform.isAndroid) {
+        if (newSettings.protectionActive) {
+          if (!previousSettings.protectionActive) {
+            await ForegroundMonitorService.start(newSettings);
+          } else {
+            await ForegroundMonitorService.update(newSettings);
+          }
+        } else if (previousSettings.protectionActive) {
+          await ForegroundMonitorService.stop();
+        }
+      }
       return true;
     } on FirebaseException catch (e) {
+      _settings = previousSettings;
       _setError('Failed to save settings: ${e.message}');
       return false;
+    } on PlatformException catch (e) {
+      _settings = newSettings;
+      _setError(
+          'Settings saved, but Android protection could not be updated: ${e.message}');
+      return false;
     } catch (e) {
+      _settings = previousSettings;
       _setError('An unexpected error occurred.');
       return false;
     } finally {

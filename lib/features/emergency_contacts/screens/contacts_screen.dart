@@ -99,8 +99,15 @@ class ContactsScreen extends StatelessWidget {
                                   ),
                                 );
                                 if (confirm == true && context.mounted) {
-                                  await contactsProvider
+                                  final success = await contactsProvider
                                       .deleteContact(contact.id);
+                                  if (success && context.mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text('${contact.name} removed from emergency contacts.'),
+                                      ),
+                                    );
+                                  }
                                 }
                               },
                             ),
@@ -178,7 +185,16 @@ class ContactsScreen extends StatelessWidget {
                   enabled: enabled,
                 );
                 final success = await provider.addContact(contact);
-                if (success && context.mounted) Navigator.pop(context);
+                if (success && context.mounted) {
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('${contact.name} added to emergency contacts.')),
+                  );
+                } else if (context.mounted && provider.errorMessage != null) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(provider.errorMessage!)),
+                  );
+                }
               },
               child: const Text('Add'),
             ),
@@ -252,7 +268,13 @@ class ContactsScreen extends StatelessWidget {
                   enabled: enabled,
                 );
                 final success = await provider.updateContact(updated);
-                if (success && context.mounted) Navigator.pop(context);
+                if (success && context.mounted) {
+                  Navigator.pop(context);
+                } else if (context.mounted && provider.errorMessage != null) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(provider.errorMessage!)),
+                  );
+                }
               },
               child: const Text('Save'),
             ),

@@ -44,6 +44,9 @@ class ShakeProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  String? _lastAlertMessage;
+  String? get lastAlertMessage => _lastAlertMessage;
+
   Future<void> handleShake(
       AppSettings settings, List<EmergencyContact> contacts) async {
     if (_isProcessing) return;
@@ -52,10 +55,11 @@ class ShakeProvider extends ChangeNotifier {
 
     _isProcessing = true;
     _lastError = null;
+    _lastAlertMessage = null;
     notifyListeners();
 
     try {
-      await _alertService.triggerAlert(
+      _lastAlertMessage = await _alertService.triggerAlert(
         testMode: false,
         settings: settings,
         contacts: contacts,
@@ -66,6 +70,11 @@ class ShakeProvider extends ChangeNotifier {
       _isProcessing = false;
       notifyListeners();
     }
+  }
+
+  void clearLastAlertMessage() {
+    _lastAlertMessage = null;
+    notifyListeners();
   }
 
   @override

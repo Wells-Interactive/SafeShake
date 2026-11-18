@@ -23,7 +23,9 @@ class _SplashScreenState extends State<SplashScreen> {
     if (!mounted) return;
 
     final authProvider = context.read<AuthProvider>();
-    await authProvider.initialize();
+    try {
+      await authProvider.initialize().timeout(const Duration(seconds: 20));
+    } catch (_) {}
     if (!mounted) return;
 
     Navigator.pushReplacementNamed(
@@ -35,7 +37,7 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   Widget build(BuildContext context) {
     return const Scaffold(
-      backgroundColor: AppColors.brand,
+      backgroundColor: AppColors.safety,
       body: Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,

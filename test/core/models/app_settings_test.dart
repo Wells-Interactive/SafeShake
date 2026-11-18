@@ -11,13 +11,23 @@ void main() {
       expect(settings.countdownSeconds, 10);
       expect(settings.locationSharingEnabled, true);
       expect(settings.emergencyMessage, contains('EMERGENCY ALERT'));
-      expect(settings.protectionActive, true);
+      expect(settings.protectionActive, false);
       expect(settings.hasCompletedOnboarding, false);
+    });
+
+    test('start action is used when enabling protection from off state', () {
+      const previous = AppSettings(userId: 'uid', protectionActive: false);
+      const next = AppSettings(userId: 'uid', protectionActive: true);
+
+      expect(previous.protectionActive, false);
+      expect(next.protectionActive, true);
+      expect(next.copyWith(protectionActive: true).protectionActive, true);
     });
 
     test('copyWith updates specified fields', () {
       const settings = AppSettings(userId: 'uid');
-      final updated = settings.copyWith(alertMode: AlertMode.countdown, countdownSeconds: 15);
+      final updated = settings.copyWith(
+          alertMode: AlertMode.countdown, countdownSeconds: 15);
       expect(updated.alertMode, AlertMode.countdown);
       expect(updated.countdownSeconds, 15);
       expect(updated.userId, 'uid');
@@ -52,7 +62,16 @@ void main() {
       expect(settings.shakeSensitivity, ShakeSensitivity.medium);
       expect(settings.countdownSeconds, 10);
       expect(settings.locationSharingEnabled, true);
-      expect(settings.protectionActive, true);
+      expect(settings.protectionActive, false);
+    });
+
+    test('requires new explicit protection consent for existing settings', () {
+      final settings = AppSettings.fromMap(
+        'uid',
+        const {'protectionActive': true},
+      );
+
+      expect(settings.protectionActive, false);
     });
   });
 }

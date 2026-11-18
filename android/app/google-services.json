@@ -14,11 +14,11 @@
       },
       "oauth_client": [
         {
-          "client_id": "716607076837-92oqb947dabkqa4mlmjaclqsf8ck87g7.apps.googleusercontent.com",
+          "client_id": "716607076837-c66op2kfd3lvpco40onc5g9llvvdfggg.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
             "package_name": "com.wellsint.brainyte.safeshake",
-            "certificate_hash": "1d6d539b5671567f49a050ff8b6b770c24458979"
+            "certificate_hash": "bbf477edb3306992786ddbebb6a77b367905ce38"
           }
         },
         {

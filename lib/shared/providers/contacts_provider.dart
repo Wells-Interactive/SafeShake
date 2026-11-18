@@ -1,8 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/models/emergency_contact.dart';
 import '../../core/constants/app_constants.dart';
 import '../../core/services/firebase_service.dart';
+import '../../core/utils/validators.dart';
 
 class ContactsProvider extends ChangeNotifier {
   final FirebaseService _firebaseService = FirebaseService();
@@ -33,6 +35,11 @@ class ContactsProvider extends ChangeNotifier {
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
   int get enabledCount => _contacts.where((c) => c.enabled).length;
+  bool get hasEnabledEmailContact => _contacts.any(
+        (contact) =>
+            contact.enabled &&
+            Validators.isValidEmail(contact.email.trim()),
+      );
   bool get canAddMore => _contacts.length < AppConstants.maxContacts;
 
   Future<void> loadContacts() async {
@@ -56,6 +63,8 @@ class ContactsProvider extends ChangeNotifier {
     }
   }
 
+  String _normalizePhone(String phone) => phone.replaceAll(RegExp(r'[\s\-\(\)]'), '');
+
   Future<bool> addContact(EmergencyContact contact) async {
     final userId = _userId;
     if (userId == null || userId.isEmpty) {
@@ -64,6 +73,11 @@ class ContactsProvider extends ChangeNotifier {
     }
     if (!canAddMore) {
       _setError('Maximum of ${AppConstants.maxContacts} contacts allowed.');
+      return false;
+    }
+    final normalized = _normalizePhone(contact.phoneNumber.trim());
+    if (normalized.isNotEmpty && _contacts.any((c) => _normalizePhone(c.phoneNumber.trim()) == normalized)) {
+      _setError('A contact with this phone number already exists.');
       return false;
     }
     _setLoading(true);
@@ -76,6 +90,7 @@ class ContactsProvider extends ChangeNotifier {
       if (_userId != userId) return false;
       _contacts.add(contact);
       notifyListeners();
+      _saveSmsNumbers();
       return true;
     } on FirebaseException catch (e) {
       _setError('Failed to add contact: ${e.message}');
@@ -93,6 +108,15 @@ class ContactsProvider extends ChangeNotifier {
     if (userId == null || userId.isEmpty) return false;
     _setLoading(true);
     _clearError();
+    final normalized = _normalizePhone(contact.phoneNumber.trim());
+    final hasDuplicate = normalized.isNotEmpty && _contacts.any(
+      (c) => c.id != contact.id && _normalizePhone(c.phoneNumber.trim()) == normalized,
+    );
+    if (hasDuplicate) {
+      _setError('A contact with this phone number already exists.');
+      _setLoading(false);
+      return false;
+    }
     try {
       await _firebaseService
           .userCollection(userId)
@@ -104,6 +128,7 @@ class ContactsProvider extends ChangeNotifier {
         _contacts[index] = contact;
         notifyListeners();
       }
+      _saveSmsNumbers();
       return true;
     } on FirebaseException catch (e) {
       _setError('Failed to update contact: ${e.message}');
@@ -126,6 +151,7 @@ class ContactsProvider extends ChangeNotifier {
       if (_userId != userId) return false;
       _contacts.removeWhere((c) => c.id == contactId);
       notifyListeners();
+      _saveSmsNumbers();
       return true;
     } on FirebaseException catch (e) {
       _setError('Failed to delete contact: ${e.message}');
@@ -151,5 +177,14 @@ class ContactsProvider extends ChangeNotifier {
   void _clearError() {
     _errorMessage = null;
     notifyListeners();
+  }
+
+  Future<void> _saveSmsNumbers() async {
+    final prefs = await SharedPreferences.getInstance();
+    final numbers = _contacts
+        .where((c) => c.enabled && c.phoneNumber.trim().isNotEmpty)
+        .map((c) => c.phoneNumber.trim())
+        .toList();
+    await prefs.setString('sms_numbers', numbers.join(','));
   }
 }

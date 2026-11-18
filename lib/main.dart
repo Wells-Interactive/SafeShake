@@ -6,17 +6,27 @@ import 'firebase_options.dart';
 import 'app/app.dart';
 import 'core/services/morning_reminder_service.dart';
 
-void main() async {
+void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   runApp(const SafeShakeApp());
+  unawaited(_bootstrapServices());
+}
+
+Future<void> _bootstrapServices() async {
+  try {
+    if (Firebase.apps.isEmpty) {
+      await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform)
+          .timeout(const Duration(seconds: 20));
+    }
+  } catch (_) {}
   unawaited(_initializeMorningReminder());
 }
 
 Future<void> _initializeMorningReminder() async {
   try {
+    await Future<void>.delayed(const Duration(seconds: 3));
     await MorningReminderService().initializeAndSchedule();
-  } on Exception catch (error, stackTrace) {
+  } catch (error, stackTrace) {
     FlutterError.reportError(
       FlutterErrorDetails(
         exception: error,
