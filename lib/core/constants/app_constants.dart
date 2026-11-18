@@ -16,6 +16,7 @@ class AppConstants {
     'emergencyContacts',
     'emergencyMessage',
     'permissions',
+    'batteryOptimization',
     'locationPreference',
     'shakeConfiguration',
     'alertMode',

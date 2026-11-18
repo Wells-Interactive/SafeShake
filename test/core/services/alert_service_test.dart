@@ -85,44 +85,11 @@ void main() {
           'Please help me.\n\nMy location: https://maps.google.com/?q=51.5072,-0.1276');
     });
 
-    test('builds SMS composer links with the message body', () {
-      const contact = EmergencyContact(
-        id: '1',
-        name: 'Test',
-        phoneNumber: '+1234567890',
-      );
-
-      final uri = AlertService.smsComposerUri(contact, 'Please help.');
-
-      expect(uri.scheme, 'sms');
-      expect(uri.path, '+1234567890');
-      expect(uri.queryParameters['body'], 'Please help.');
-    });
-
-    test('builds email composer links for fallback', () {
-      const contact = EmergencyContact(
-        id: '1',
-        name: 'Test',
-        phoneNumber: '+1234567890',
-        email: 'test@example.com',
-      );
-
-      final uri = AlertService.emailComposerUri(contact, 'Please help.');
-
-      expect(uri.scheme, 'mailto');
-      expect(uri.path, 'test@example.com');
-      expect(uri.queryParameters['subject'], 'SafeShake emergency alert');
-      expect(uri.queryParameters['body'], 'Please help.');
-    });
-
-    test('opens email composer when SMS composer is unavailable', () async {
-      final openedUris = <Uri>[];
-      final service = AlertService(
-        launchComposer: (uri) async {
-          openedUris.add(uri);
-          return uri.scheme == 'mailto';
-        },
-      );
+    test('sends email automatically without opening a composer', () async {
+      final sentMessages = <String>[];
+      final service = AlertService(sendEmail: (message) async {
+        sentMessages.add(message);
+      });
       const settings = AppSettings(
         userId: 'uid',
         locationSharingEnabled: false,
@@ -140,12 +107,17 @@ void main() {
         contacts: const [contact],
       );
 
-      expect(openedUris.map((uri) => uri.scheme), ['sms', 'mailto']);
-      expect(openedUris.last.path, 'test@example.com');
+      expect(
+        sentMessages,
+        [AlertService.composeEmergencyMessage(settings: settings)],
+      );
     });
 
-    test('reports when SMS fails and contact has no email fallback', () async {
-      final service = AlertService(launchComposer: (_) async => false);
+    test('reports when no enabled contact has an email address', () async {
+      var sendAttempted = false;
+      final service = AlertService(sendEmail: (_) async {
+        sendAttempted = true;
+      });
       const settings = AppSettings(
         userId: 'uid',
         locationSharingEnabled: false,
@@ -162,8 +134,37 @@ void main() {
           settings: settings,
           contacts: const [contact],
         ),
-        throwsA(isA<AlertDeliveryException>()),
+        throwsA(
+          isA<AlertDeliveryException>().having(
+            (error) => error.message,
+            'message',
+            contains('No enabled emergency contact'),
+          ),
+        ),
       );
+      expect(sendAttempted, isFalse);
+    });
+
+    test('test mode never sends email', () async {
+      var sendAttempted = false;
+      final service = AlertService(sendEmail: (_) async {
+        sendAttempted = true;
+      });
+      const settings = AppSettings(userId: 'uid');
+      const contact = EmergencyContact(
+        id: '1',
+        name: 'Test',
+        phoneNumber: '+1234567890',
+        email: 'test@example.com',
+      );
+
+      await service.triggerAlert(
+        testMode: true,
+        settings: settings,
+        contacts: const [contact],
+      );
+
+      expect(sendAttempted, isFalse);
     });
   });
 }

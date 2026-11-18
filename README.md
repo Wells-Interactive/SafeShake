@@ -68,20 +68,15 @@ State management uses **Provider**. Business logic is separated into services an
 
 # ✨ Key Features
 
-## 📳 Shake Detection
+## 📳 Shake Detection (False-Alarm Filtered)
 
-Highly responsive shake detection designed to provide a quick and accessible method of activating an emergency alert.
+On Android, enabling Protection starts a native sensor foreground service with an ongoing notification. SafeShake requires **two shakes within a short time window** before triggering, which prevents false alarms from accidental movement. A detected shake displays a cancel action before an emergency alert is sent.
 
-## 📩 Emergency Alerts
+iOS shake detection remains active only while the app is open.
 
-SafeShake opens the device SMS composer with the emergency message for each
-trusted contact. If the SMS composer cannot be opened, it tries that contact's
-saved email address in the device mail composer. Add an email address to a
-contact to enable this fallback.
+## 🚨 Manual SOS Button
 
-The user must tap Send in the SMS or email app. Mobile platforms do not report
-whether a composed message was actually sent or delivered, so SafeShake can
-only fall back when it cannot open the SMS composer—not when delivery fails.
+A large, always-accessible "MANUAL SOS" button appears on the Home screen alongside shake detection. Use it when a shake gesture is not possible due to physical distress or a dropped phone.
 
 ## 👥 Emergency Contact Management
 
@@ -93,16 +88,27 @@ Users can:
 * Select contacts for emergency alerts
 * Up to 5 contacts maximum
 
+Duplicate phone numbers are not allowed (numbers are normalized to prevent duplicates). Users receive notifications when contacts are added or removed.
+
 ## 📍 Optional Location Sharing
 
-When enabled and permitted, SafeShake can include the user's current location with an emergency alert.
+When enabled and permitted, SafeShake fetches the user's exact latitude and longitude and formats them into a standard Google Maps URL included in the emergency message.
+
+If a fresh GPS fix times out during an emergency, SafeShake immediately sends the last known cached location instead of waiting.
+
+## 📧 Email Alerts with SMS Fallback
+
+SafeShake sends emergency email alerts silently in the background via the Gmail API once OAuth 2.0 permissions are granted.
+
+If there is no internet connection during an emergency, SafeShake automatically falls back to sending a direct cellular SMS via Android's `SmsManager` API to the saved contact phone numbers.
+
+## 🔄 Force Update
+
+When a new minimum required version is published, SafeShake displays a non-dismissible update dialog at launch, directing users to update from the Google Play Store.
 
 ## ⏰ Morning Reminder
 
-SafeShake schedules a local notification for 8:00 AM in the device's local time
-to remind users to open the app. Notifications must be allowed in device
-settings. The reminder does not force the app to open or keep shake monitoring
-running while the app is closed.
+SafeShake schedules a local notification for 8:00 AM in the device's local time to remind users to open the app.
 
 ## ⚙️ Customization
 
@@ -116,7 +122,13 @@ Users can personalize:
 
 ## 🧪 Test Mode
 
-A dedicated test mode allows users to test SafeShake without sending a real emergency SMS.
+A dedicated test mode allows users to test SafeShake without sending a real emergency alert.
+
+---
+
+# 🔋 Battery Optimization
+
+On Android, disable battery optimization for SafeShake during onboarding (Settings → Apps → SafeShake → Battery → Unrestricted) so the operating system does not put the background monitoring service to sleep. SafeShake runs a persistent Foreground Service with a visible notification so the system does not terminate the shake listener.
 
 ---
 
@@ -129,33 +141,7 @@ SafeShake supports:
 * Phone number authentication
 * Password reset
 
-New users are directed to the sign-in screen first and can create an account
-there. Google Sign-In uses Firebase Authentication credentials. After enabling
-the Google provider, download fresh platform configuration from Firebase:
-Android needs a matching OAuth client for the application ID and signing
-fingerprint; iOS needs the Google client ID and its reversed-client-ID URL
-scheme in `Info.plist`. The current iOS Firebase plist does not include those
-Google OAuth entries.
-
----
-
-
-
-# 🔒 Security Notes
-
-* Never commit signing keys, keystores, or API secrets
-* Firebase security rules enforce user-owned data
-* Profile pictures are optional and user-owned
-* Location sharing is permission-aware
-
----
-
-# ⚠️ Platform Limitations
-
-* SMS and email alerts open device composers; users must send the messages. SafeShake cannot verify delivery.
-* Push notifications are prepared for future use but v1 does not implement emergency push delivery.
-* Background shake monitoring is subject to modern Android background restrictions.
-* SafeShake cannot force itself to open every morning or remain in the foreground continuously. The local reminder prompts users to open it; shake monitoring currently runs only while the app is open.
+New users are directed to the sign-in screen first and can create an account there. Google Sign-In uses Firebase Authentication credentials.
 
 ---
 
@@ -182,6 +168,12 @@ Building practical technology solutions for people, businesses, and communities.
 For enquiries, collaboration opportunities, or partnerships:
 
 [Contact Mr. Wells](https://linktr.ee/mrwellslife)
+
+---
+
+# ⚠️ Important Safety Notice
+
+**100% guaranteed delivery is not possible.** SafeShake is purely an additional option for contacting people you trust. It is not an emergency service, is not continuously monitored, and cannot guarantee that an alert will be detected or delivered. Do not rely on it as your only way to get help. If you are in immediate danger, contact your local emergency services or use another available way to reach help.
 
 ---
 

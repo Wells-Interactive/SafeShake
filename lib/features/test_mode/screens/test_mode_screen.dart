@@ -32,7 +32,10 @@ class _TestModeScreenState extends State<TestModeScreen> {
         settings: settingsProvider.settings,
         contacts: contactsProvider.contacts,
       );
-      setState(() => _result = 'Test completed successfully. No real alert was sent.');
+      setState(
+        () => _result =
+            'Local test completed. No email was sent, so this does not verify your contacts, Gmail setup, or email delivery.',
+      );
     } catch (e) {
       setState(() => _result = 'Test failed: ${e.toString()}');
     } finally {
@@ -63,7 +66,10 @@ class _TestModeScreenState extends State<TestModeScreen> {
                     SizedBox(height: 16),
                     Text('TEST MODE', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppColors.safety)),
                     SizedBox(height: 8),
-                    Text('No real emergency SMS or alert is sent.', textAlign: TextAlign.center),
+                    Text(
+                      'This checks only the local test flow. It sends no email and does not verify alert delivery.',
+                      textAlign: TextAlign.center,
+                    ),
                   ],
                 ),
               ),

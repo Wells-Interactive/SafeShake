@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../../shared/providers/settings_provider.dart';
@@ -5,6 +7,7 @@ import '../../../../shared/providers/auth_provider.dart';
 import '../../../../shared/providers/contacts_provider.dart';
 import '../../../../shared/providers/shake_provider.dart';
 import '../../../../core/models/app_settings.dart';
+import '../../../../core/services/foreground_monitor_service.dart';
 import '../../../../core/services/location_service.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -21,10 +24,42 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Future<void> _setProtectionActive(bool active) async {
     setState(() => _updatingProtection = true);
     final settingsProvider = context.read<SettingsProvider>();
+    final contactsProvider = context.read<ContactsProvider>();
     try {
+      if (active && contactsProvider.isLoading) {
+        _showMessage('Wait for emergency contacts to finish loading.');
+        return;
+      }
+      if (active && contactsProvider.errorMessage != null) {
+        _showMessage(
+          'Could not verify emergency contacts: ${contactsProvider.errorMessage}',
+        );
+        return;
+      }
+      if (active && !contactsProvider.hasEnabledEmailContact) {
+        _showMessage(
+          'Add and enable a contact with a valid email address before turning protection on.',
+        );
+        return;
+      }
+
+      if (active && Platform.isAndroid) {
+        final confirmed = await _confirmAndroidProtection();
+        if (!confirmed || !mounted) return;
+        if (!await ForegroundMonitorService.requestNotificationPermission()) {
+          _showMessage(
+            'Allow notifications to keep protection visibly active.',
+          );
+          return;
+        }
+      }
+
       final success = await settingsProvider.setProtectionActive(active);
       if (!mounted) return;
       if (!success) {
+        if (active && settingsProvider.settings.protectionActive) {
+          await settingsProvider.setProtectionActive(false);
+        }
         _showMessage(
           settingsProvider.errorMessage ??
               'Could not update protection settings.',
@@ -33,18 +68,42 @@ class _SettingsScreenState extends State<SettingsScreen> {
       }
 
       final shakeProvider = context.read<ShakeProvider>();
-      if (active) {
+      if (!Platform.isAndroid && active) {
         shakeProvider.startListening(
           settingsProvider.settings,
           context.read<ContactsProvider>().contacts,
         );
-      } else {
+      } else if (!Platform.isAndroid) {
         shakeProvider.stopListening();
       }
     } finally {
       if (mounted) setState(() => _updatingProtection = false);
     }
   }
+
+  Future<bool> _confirmAndroidProtection() async =>
+      await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Enable background protection?'),
+          content: const Text(
+            'SafeShake will keep an ongoing notification while it monitors for shakes. '
+            'A detected shake starts a cancel window before an email alert is sent. '
+            'Android may still stop the service, and alerts are not guaranteed.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Not now'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text('Enable'),
+            ),
+          ],
+        ),
+      ) ??
+      false;
 
   Future<void> _setLocationSharing(bool enabled) async {
     setState(() => _updatingLocation = true);
@@ -172,6 +231,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
             subtitle: const Text('Safety in the Shake of Your Hand'),
             onTap: _showAbout,
           ),
+          ListTile(
+            leading: const Icon(Icons.help_outline),
+            title: const Text('Help'),
+            subtitle: const Text('Setup, alerts, and important limitations'),
+            onTap: () => Navigator.pushNamed(context, '/help'),
+          ),
         ],
       ),
     );
@@ -196,15 +261,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: ShakeSensitivity.values.map((sensitivity) {
-            return RadioListTile<ShakeSensitivity>(
+            final selected = provider.shakeSensitivity == sensitivity;
+            return ListTile(
               title: Text(_sensitivityLabel(sensitivity)),
-              value: sensitivity,
-              groupValue: provider.shakeSensitivity,
-              onChanged: (value) {
-                if (value != null) {
-                  provider.setShakeSensitivity(value);
-                  Navigator.pop(context);
-                }
+              trailing: selected
+                  ? const Icon(Icons.check_circle, color: Colors.green)
+                  : null,
+              selected: selected,
+              onTap: () {
+                provider.setShakeSensitivity(sensitivity);
+                Navigator.pop(context);
               },
             );
           }).toList(),
@@ -224,42 +290,41 @@ class _SettingsScreenState extends State<SettingsScreen> {
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              RadioListTile<AlertMode>(
+              ListTile(
                 title: const Text('Immediate'),
-                value: AlertMode.immediate,
-                groupValue: provider.alertMode,
-                onChanged: (value) {
-                  if (value != null) {
-                    provider.setAlertMode(value);
-                    Navigator.pop(context);
-                  }
-                },
-              ),
-              RadioListTile<AlertMode>(
-                title: const Text('Countdown'),
-                subtitle: provider.alertMode == AlertMode.countdown
-                    ? TextField(
-                        controller: countdownController,
-                        decoration:
-                            const InputDecoration(labelText: 'Seconds (3-30)'),
-                        keyboardType: TextInputType.number,
-                        onChanged: (value) {
-                          final seconds = int.tryParse(value);
-                          if (seconds != null) {
-                            provider.setCountdownSeconds(seconds);
-                          }
-                        },
-                      )
+                trailing: provider.alertMode == AlertMode.immediate
+                    ? const Icon(Icons.check_circle, color: Colors.green)
                     : null,
-                value: AlertMode.countdown,
-                groupValue: provider.alertMode,
-                onChanged: (value) {
-                  if (value != null) {
-                    provider.setAlertMode(value);
-                    setState(() {});
-                  }
+                selected: provider.alertMode == AlertMode.immediate,
+                onTap: () {
+                  provider.setAlertMode(AlertMode.immediate);
+                  Navigator.pop(context);
                 },
               ),
+              ListTile(
+                title: const Text('Countdown'),
+                trailing: provider.alertMode == AlertMode.countdown
+                    ? const Icon(Icons.check_circle, color: Colors.green)
+                    : null,
+                selected: provider.alertMode == AlertMode.countdown,
+                onTap: () {
+                  provider.setAlertMode(AlertMode.countdown);
+                  setState(() {});
+                },
+              ),
+              if (provider.alertMode == AlertMode.countdown)
+                TextField(
+                  controller: countdownController,
+                  decoration:
+                      const InputDecoration(labelText: 'Seconds (3-30)'),
+                  keyboardType: TextInputType.number,
+                  onChanged: (value) {
+                    final seconds = int.tryParse(value);
+                    if (seconds != null) {
+                      provider.setCountdownSeconds(seconds);
+                    }
+                  },
+                ),
             ],
           ),
         ),

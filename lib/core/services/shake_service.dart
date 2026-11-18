@@ -8,6 +8,8 @@ class ShakeService {
   static const int _cooldownMs = AppConstants.shakeCooldownMs;
   static const int _debounceMs = AppConstants.shakeDebounceMs;
   static const double _mediumThreshold = AppConstants.defaultShakeThreshold;
+  static const int _shakeWindowMs = 3000;
+  static const int _minShakes = 2;
 
   final Function() onShakeDetected;
   final void Function(Object error)? onError;
@@ -19,6 +21,7 @@ class ShakeService {
   DateTime? _lastTrigger;
   DateTime? _lastEvent;
   bool _cooldown = false;
+  final List<DateTime> _shakeTimes = [];
 
   ShakeService({
     required this.onShakeDetected,
@@ -68,20 +71,28 @@ class ShakeService {
     }
 
     if (magnitude > currentThreshold) {
-      if (_lastTrigger != null &&
-          now.difference(_lastTrigger!).inMilliseconds < _cooldownMs) {
-        return;
+      _shakeTimes.add(now);
+      _shakeTimes.removeWhere(
+        (t) => now.difference(t).inMilliseconds > _shakeWindowMs,
+      );
+
+      if (_shakeTimes.length >= _minShakes) {
+        if (_lastTrigger != null &&
+            now.difference(_lastTrigger!).inMilliseconds < _cooldownMs) {
+          _shakeTimes.clear();
+          return;
+        }
+        _lastTrigger = now;
+        _cooldown = true;
+        _shakeTimes.clear();
+
+        _cooldownTimer = Timer(const Duration(milliseconds: _cooldownMs), () {
+          _cooldown = false;
+          _cooldownTimer = null;
+        });
+
+        onShakeDetected();
       }
-      _lastTrigger = now;
-      _cooldown = true;
-      _lastEvent = now;
-
-      _cooldownTimer = Timer(const Duration(milliseconds: _cooldownMs), () {
-        _cooldown = false;
-        _cooldownTimer = null;
-      });
-
-      onShakeDetected();
     }
 
     _lastEvent = now;

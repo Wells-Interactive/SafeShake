@@ -1,20 +1,18 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/services.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:cloud_functions/cloud_functions.dart';
 import '../models/app_settings.dart';
 import '../models/emergency_contact.dart';
 import 'location_service.dart';
 
-typedef AlertComposerLauncher = Future<bool> Function(Uri uri);
+typedef EmergencyEmailSender = Future<void> Function(String message);
 
 class AlertService {
   final LocationService _locationService = LocationService();
-  final AlertComposerLauncher _launchComposer;
+  final EmergencyEmailSender _sendEmail;
 
-  AlertService({AlertComposerLauncher? launchComposer})
-      : _launchComposer = launchComposer ??
-            ((uri) => launchUrl(uri, mode: LaunchMode.externalApplication));
+  AlertService({EmergencyEmailSender? sendEmail})
+      : _sendEmail = sendEmail ?? _sendEmergencyEmail;
 
   bool _isAlerting = false;
   Timer? _countdownTimer;
@@ -24,23 +22,23 @@ class AlertService {
   bool get isAlerting => _isAlerting;
   int? get remainingSeconds => _remainingSeconds;
 
-  Future<void> triggerAlert({
+  Future<String?> triggerAlert({
     required bool testMode,
     required AppSettings settings,
     required List<EmergencyContact> contacts,
   }) async {
-    if (_isAlerting) return;
-    if (contacts.isEmpty) return;
+    if (_isAlerting) return null;
+    if (contacts.isEmpty) return null;
 
     final enabledContacts = contacts.where((c) => c.enabled).toList();
-    if (enabledContacts.isEmpty) return;
+    if (enabledContacts.isEmpty) return null;
 
     _isAlerting = true;
     try {
       if (settings.alertMode == AlertMode.countdown && !testMode) {
-        await _runCountdown(settings, enabledContacts);
+        return await _runCountdown(settings, enabledContacts);
       } else {
-        await _executeAlert(
+        return await _executeAlert(
             testMode: testMode, settings: settings, contacts: enabledContacts);
       }
     } finally {
@@ -68,10 +66,10 @@ class AlertService {
         .map((s) => _remainingSeconds! - s);
   }
 
-  Future<void> _runCountdown(
+  Future<String?> _runCountdown(
       AppSettings settings, List<EmergencyContact> contacts) async {
     _remainingSeconds = settings.countdownSeconds;
-    final completer = Completer<void>();
+    final completer = Completer<String?>();
     _countdownCompleter = completer;
 
     _countdownTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
@@ -82,9 +80,9 @@ class AlertService {
         _countdownCompleter = null;
         () async {
           try {
-            await _executeAlert(
+            final msg = await _executeAlert(
                 testMode: false, settings: settings, contacts: contacts);
-            completer.complete();
+            completer.complete(msg);
           } catch (error, stackTrace) {
             completer.completeError(error, stackTrace);
           } finally {
@@ -93,10 +91,10 @@ class AlertService {
         }();
       }
     });
-    await completer.future;
+    return completer.future;
   }
 
-  Future<void> _executeAlert({
+  Future<String?> _executeAlert({
     required bool testMode,
     required AppSettings settings,
     required List<EmergencyContact> contacts,
@@ -114,69 +112,29 @@ class AlertService {
         debugPrint(
             '[TEST MODE] Prepared an alert for ${contacts.length} contacts.');
       }
-      return;
+      return message;
     }
 
-    await _openAlertComposers(contacts, message);
+    if (!contacts.any((contact) => contact.email.trim().isNotEmpty)) {
+      throw const AlertDeliveryException(
+        'No enabled emergency contact has an email address saved.',
+      );
+    }
+
+    await _sendEmail(message);
+    return message;
   }
 
-  Future<void> _openAlertComposers(
-    List<EmergencyContact> contacts,
-    String message,
-  ) async {
-    final failures = <String>[];
-    for (final contact in contacts) {
-      final smsFailure = await _openComposer(smsComposerUri(contact, message));
-      if (smsFailure == null) continue;
-
-      if (contact.email.trim().isEmpty) {
-        failures.add(
-          '${contact.name}: SMS composer failed ($smsFailure); no email address is saved.',
-        );
-        continue;
-      }
-
-      final emailFailure =
-          await _openComposer(emailComposerUri(contact, message));
-      if (emailFailure != null) {
-        failures.add(
-          '${contact.name}: SMS composer failed ($smsFailure); email composer failed ($emailFailure).',
-        );
-      }
-    }
-
-    if (failures.isNotEmpty) {
-      throw AlertDeliveryException(failures.join(' '));
-    }
-  }
-
-  Future<String?> _openComposer(Uri uri) async {
+  static Future<void> _sendEmergencyEmail(String message) async {
+    final callable = FirebaseFunctions.instanceFor(region: 'europe-west1')
+        .httpsCallable('sendEmergencyAlert');
     try {
-      return await _launchComposer(uri)
-          ? null
-          : 'No application can open this message.';
-    } on PlatformException catch (error) {
-      return error.message ?? error.code;
+      await callable.call({'message': message});
+    } on FirebaseFunctionsException catch (error) {
+      throw AlertDeliveryException(
+        error.message ?? 'Gmail API could not send the emergency email (${error.code}).',
+      );
     }
-  }
-
-  static Uri smsComposerUri(EmergencyContact contact, String message) {
-    return Uri(
-      scheme: 'sms',
-      path: contact.phoneNumber,
-      queryParameters: {'body': message},
-    );
-  }
-
-  static Uri emailComposerUri(EmergencyContact contact, String message) {
-    return Uri(
-      scheme: 'mailto',
-      path: contact.email,
-      queryParameters: {
-        'subject': 'SafeShake emergency alert',
-        'body': message,
-      },
-    );
   }
 
   static String composeEmergencyMessage({
@@ -202,5 +160,5 @@ class AlertDeliveryException implements Exception {
   const AlertDeliveryException(this.message);
 
   @override
-  String toString() => message;
+  String toString() => 'Alert delivery failed: $message';
 }

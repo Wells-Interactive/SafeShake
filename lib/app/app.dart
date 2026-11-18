@@ -13,6 +13,7 @@ import '../features/authentication/screens/forgot_password_screen.dart';
 import '../features/authentication/screens/phone_auth_screen.dart';
 import '../features/authentication/screens/profile_screen.dart';
 import '../features/onboarding/screens/onboarding_screen.dart';
+import '../features/settings/screens/help_screen.dart';
 
 class SafeShakeApp extends StatelessWidget {
   const SafeShakeApp({super.key});
@@ -63,6 +64,7 @@ class SafeShakeApp extends StatelessWidget {
           '/phone-auth': (_) => const PhoneAuthScreen(),
           '/profile': (_) => const ProfileScreen(),
           '/onboarding': (_) => const OnboardingScreen(),
+          '/help': (_) => const HelpScreen(),
         },
       ),
     );

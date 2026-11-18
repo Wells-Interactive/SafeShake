@@ -98,6 +98,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         return _EmergencyMessageStep(settingsProvider: settingsProvider);
       case 'permissions':
         return _PermissionsStep();
+      case 'batteryOptimization':
+        return _BatteryOptimizationStep();
       case 'locationPreference':
         return _LocationPreferenceStep(settingsProvider: settingsProvider);
       case 'shakeConfiguration':
@@ -226,6 +228,29 @@ class _PermissionsStep extends StatelessWidget {
     return const Padding(
       padding: EdgeInsets.all(24),
       child: Center(child: Text('SafeShake needs location and notification permissions to function effectively.', textAlign: TextAlign.center)),
+    );
+  }
+}
+
+class _BatteryOptimizationStep extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Icon(Icons.battery_saver, size: 96, color: AppColors.safety),
+          const SizedBox(height: 24),
+          Text('Battery Optimization', style: Theme.of(context).textTheme.headlineSmall, textAlign: TextAlign.center),
+          const SizedBox(height: 16),
+          const Text(
+            'To keep SafeShake monitoring shakes in the background, disable battery optimization for this app.\n\n'
+            'On Android: Settings → Apps → SafeShake → Battery → Unrestricted.',
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
     );
   }
 }

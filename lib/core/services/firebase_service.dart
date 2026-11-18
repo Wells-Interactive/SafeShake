@@ -1,17 +1,21 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
+import '../../firebase_options.dart';
 
 class FirebaseService {
-  static bool _initialized = false;
+  static Future<void>? _initFuture;
 
   Future<void> initialize() async {
-    if (_initialized) return;
-    if (Firebase.apps.isNotEmpty) {
-      _initialized = true;
-      return;
+    if (Firebase.apps.isNotEmpty) return;
+    _initFuture ??= Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    ).timeout(const Duration(seconds: 20));
+    try {
+      await _initFuture;
+    } catch (_) {
+      _initFuture = null;
+      rethrow;
     }
-    await Firebase.initializeApp();
-    _initialized = true;
   }
 
   FirebaseFirestore get firestore => FirebaseFirestore.instance;

@@ -21,8 +21,9 @@ class AppSettings {
     this.shakeSensitivity = ShakeSensitivity.medium,
     this.countdownSeconds = 10,
     this.locationSharingEnabled = true,
-    this.emergencyMessage = '🚨 EMERGENCY ALERT!\n\nI may be in danger and need help.\n\nThis alert was sent from SafeShake.\n\nMy location: [LOCATION LINK]',
-    this.protectionActive = true,
+    this.emergencyMessage =
+        '🚨 EMERGENCY ALERT!\n\nI may be in danger and need help.\n\nThis alert was sent from SafeShake.\n\nMy location: [LOCATION LINK]',
+    this.protectionActive = false,
     this.hasCompletedOnboarding = false,
   });
 
@@ -41,24 +42,28 @@ class AppSettings {
       alertMode: alertMode ?? this.alertMode,
       shakeSensitivity: shakeSensitivity ?? this.shakeSensitivity,
       countdownSeconds: countdownSeconds ?? this.countdownSeconds,
-      locationSharingEnabled: locationSharingEnabled ?? this.locationSharingEnabled,
+      locationSharingEnabled:
+          locationSharingEnabled ?? this.locationSharingEnabled,
       emergencyMessage: emergencyMessage ?? this.emergencyMessage,
       protectionActive: protectionActive ?? this.protectionActive,
-      hasCompletedOnboarding: hasCompletedOnboarding ?? this.hasCompletedOnboarding,
+      hasCompletedOnboarding:
+          hasCompletedOnboarding ?? this.hasCompletedOnboarding,
     );
   }
 
   Map<String, dynamic> toMap() => {
-    'alertMode': alertMode.name,
-    'shakeSensitivity': shakeSensitivity.name,
-    'countdownSeconds': countdownSeconds,
-    'locationSharingEnabled': locationSharingEnabled,
-    'emergencyMessage': emergencyMessage,
-    'protectionActive': protectionActive,
-    'hasCompletedOnboarding': hasCompletedOnboarding,
-  };
+        'protectionConsentVersion': 1,
+        'alertMode': alertMode.name,
+        'shakeSensitivity': shakeSensitivity.name,
+        'countdownSeconds': countdownSeconds,
+        'locationSharingEnabled': locationSharingEnabled,
+        'emergencyMessage': emergencyMessage,
+        'protectionActive': protectionActive,
+        'hasCompletedOnboarding': hasCompletedOnboarding,
+      };
 
   factory AppSettings.fromMap(String userId, Map<String, dynamic> map) {
+    final hasProtectionConsent = map['protectionConsentVersion'] == 1;
     return AppSettings(
       userId: userId,
       alertMode: AlertMode.values.firstWhere(
@@ -71,8 +76,9 @@ class AppSettings {
       ),
       countdownSeconds: map['countdownSeconds'] ?? 10,
       locationSharingEnabled: map['locationSharingEnabled'] ?? true,
-      emergencyMessage: map['emergencyMessage'] ?? '🚨 EMERGENCY ALERT!\n\nI may be in danger and need help.\n\nThis alert was sent from SafeShake.\n\nMy location: [LOCATION LINK]',
-      protectionActive: map['protectionActive'] ?? true,
+      emergencyMessage: map['emergencyMessage'] ??
+          '🚨 EMERGENCY ALERT!\n\nI may be in danger and need help.\n\nThis alert was sent from SafeShake.\n\nMy location: [LOCATION LINK]',
+      protectionActive: hasProtectionConsent && (map['protectionActive'] ?? false),
       hasCompletedOnboarding: map['hasCompletedOnboarding'] ?? false,
     );
   }
