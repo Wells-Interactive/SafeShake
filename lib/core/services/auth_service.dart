@@ -2,27 +2,13 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
 class AuthService {
-  FirebaseAuth get _auth => FirebaseAuth.instance;
-
-  late final GoogleSignIn _googleSignIn = GoogleSignIn(
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final GoogleSignIn _googleSignIn = GoogleSignIn(
     serverClientId: '716607076837-t2ndk64d8dh3haprhvp0lj68g4imnvbd.apps.googleusercontent.com',
   );
 
-  User? get currentUser {
-    try {
-      return _auth.currentUser;
-    } catch (_) {
-      return null;
-    }
-  }
-
-  Stream<User?> get authStateChanges {
-    try {
-      return _auth.authStateChanges();
-    } catch (_) {
-      return const Stream<User?>.empty();
-    }
-  }
+  User? get currentUser => _auth.currentUser;
+  Stream<User?> get authStateChanges => _auth.authStateChanges();
 
   Future<void> signInWithEmail(String email, String password) async {
     await _auth.signInWithEmailAndPassword(email: email, password: password);

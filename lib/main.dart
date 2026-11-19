@@ -1,20 +1,15 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
 import 'app/app.dart';
-import 'core/services/firebase_service.dart';
 import 'core/services/morning_reminder_service.dart';
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   runApp(const SafeShakeApp());
-  unawaited(_bootstrapServices());
-}
-
-Future<void> _bootstrapServices() async {
-  try {
-    await FirebaseService().initialize();
-  } catch (_) {}
   unawaited(_initializeMorningReminder());
 }
 
