@@ -20,7 +20,7 @@ class AuthProvider extends ChangeNotifier {
 
   Future<void> initialize() async {
     try {
-      await _firebaseService.initialize();
+      await _firebaseService.initialize(timeout: const Duration(seconds: 20));
     } catch (_) {}
     try {
       _user = _authService.currentUser;
@@ -31,10 +31,15 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> _ensureFirebase() async {
+    await _firebaseService.initialize(timeout: const Duration(seconds: 30));
+  }
+
   Future<bool> signInWithEmail(String email, String password) async {
     _setLoading(true);
     _clearError();
     try {
+      await _ensureFirebase();
       await _authService.signInWithEmail(email, password);
       _user = _authService.currentUser;
       notifyListeners();
@@ -55,6 +60,7 @@ class AuthProvider extends ChangeNotifier {
     _setLoading(true);
     _clearError();
     try {
+      await _ensureFirebase();
       await _authService.registerWithEmail(email, password, fullName);
       _user = _authService.currentUser;
       notifyListeners();
@@ -74,6 +80,7 @@ class AuthProvider extends ChangeNotifier {
     _setLoading(true);
     _clearError();
     try {
+      await _ensureFirebase();
       final credential = await _authService.signInWithGoogle();
       if (credential == null) return false;
       _user = _authService.currentUser;
@@ -94,6 +101,7 @@ class AuthProvider extends ChangeNotifier {
     _setLoading(true);
     _clearError();
     try {
+      await _ensureFirebase();
       await _authService.sendPhoneVerification(phoneNumber);
     } on FirebaseAuthException catch (e) {
       _setError(_getAuthErrorMessage(e));
@@ -109,6 +117,7 @@ class AuthProvider extends ChangeNotifier {
     _setLoading(true);
     _clearError();
     try {
+      await _ensureFirebase();
       await _authService.signInWithPhoneCredential(verificationId, smsCode);
       _user = _authService.currentUser;
       notifyListeners();
@@ -128,6 +137,7 @@ class AuthProvider extends ChangeNotifier {
     _setLoading(true);
     _clearError();
     try {
+      await _ensureFirebase();
       await _authService.sendPasswordReset(email);
     } on FirebaseAuthException catch (e) {
       _setError(_getAuthErrorMessage(e));
