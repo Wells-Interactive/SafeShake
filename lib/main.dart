@@ -1,21 +1,23 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'firebase_options.dart';
 import 'app/app.dart';
+import 'core/services/firebase_service.dart';
 import 'core/services/morning_reminder_service.dart';
 
-void main() async {
+void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   runApp(const SafeShakeApp());
-  unawaited(_initializeMorningReminder());
+  unawaited(_bootstrapServices());
 }
 
-Future<void> _initializeMorningReminder() async {
+Future<void> _bootstrapServices() async {
+  // Never block the first frame on Firebase. On low-end devices this can be slow.
   try {
-    await Future<void>.delayed(const Duration(seconds: 3));
+    await FirebaseService().initialize(timeout: const Duration(seconds: 30));
+  } catch (_) {}
+  try {
+    await Future<void>.delayed(const Duration(seconds: 6));
     await MorningReminderService().initializeAndSchedule();
   } catch (error, stackTrace) {
     FlutterError.reportError(
